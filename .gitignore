@@ -60,3 +60,12 @@ jspm_packages/
 
 # Yarn Integrity file
 .yarn-integrity
+
+# AI/Development tools and configurations
+.cursor/
+.clinerules/
+.superdesign/
+.windsurfrules
+.kilocode/
+.github/copilot-instructions.md
+CLAUDE.md
