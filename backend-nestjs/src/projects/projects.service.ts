@@ -20,18 +20,53 @@ export class ProjectsService {
     // Create a new project with the provided data
     const project = this.projectRepository.create({
       name: createProjectDto.name,
+      description: createProjectDto.description,
       userId,
     });
 
     return await this.projectRepository.save(project);
   }
 
-  async findAllByUser(userId: string): Promise<Project[]> {
-    return await this.projectRepository.find({
+  async findAllByUser(userId: string, limit: number = 50, offset: number = 0): Promise<{
+    projects: Project[];
+    total: number;
+    hasMore: boolean;
+  }> {
+    // Get projects with basic info first (no relations to avoid N+1)
+    const [projects, total] = await this.projectRepository.findAndCount({
       where: { userId },
-      relations: ['decks'],
       order: { createdAt: 'DESC' },
+      take: limit,
+      skip: offset,
     });
+
+    // If projects exist, get deck counts separately to avoid N+1 query
+    if (projects.length > 0) {
+      const projectIds = projects.map(p => p.id);
+      const deckCounts = await this.deckRepository
+        .createQueryBuilder('deck')
+        .select('deck.projectId', 'projectId')
+        .addSelect('COUNT(deck.id)', 'count')
+        .where('deck.projectId IN (:...projectIds)', { projectIds })
+        .groupBy('deck.projectId')
+        .getRawMany();
+
+      // Map deck counts to projects
+      const deckCountMap = new Map(
+        deckCounts.map(dc => [dc.projectId, parseInt(dc.count)])
+      );
+
+      // Add deck count to each project without loading full relations
+      projects.forEach(project => {
+        (project as any).deckCount = deckCountMap.get(project.id) || 0;
+      });
+    }
+
+    return {
+      projects,
+      total,
+      hasMore: offset + projects.length < total
+    };
   }
 
   async findOne(id: string, userId: string): Promise<Project> {
@@ -61,9 +96,12 @@ export class ProjectsService {
   async update(id: string, updateProjectDto: UpdateProjectDto, userId: string): Promise<Project> {
     const project = await this.findOne(id, userId);
     
-    // Apply the updates from the DTO (only name field)
+    // Apply the updates from the DTO
     if (updateProjectDto.name) {
       project.name = updateProjectDto.name;
+    }
+    if (updateProjectDto.description !== undefined) {
+      project.description = updateProjectDto.description;
     }
     
     return await this.projectRepository.save(project);

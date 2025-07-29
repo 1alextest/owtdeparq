@@ -54,10 +54,12 @@ export class DeckExportController {
         doc.addPage();
         let yPosition = 30;
         
-        // Slide title
+        // Slide title with proper wrapping
         doc.setFontSize(18);
-        doc.text(`Slide ${slide.slideOrder}: ${slide.title || 'Untitled'}`, 20, yPosition);
-        yPosition += 25;
+        const slideTitle = `Slide ${slide.slideOrder}: ${slide.title || 'Untitled'}`;
+        const titleLines = doc.splitTextToSize(slideTitle, 170);
+        doc.text(titleLines, 20, yPosition);
+        yPosition += titleLines.length * 8 + 10;
         
         // Slide content with pagination
         if (slide.content) {
@@ -73,10 +75,12 @@ export class DeckExportController {
             if (yPosition > maxYPosition) {
               doc.addPage();
               yPosition = 30;
-              // Add continuation header
+              // Add continuation header with proper wrapping
               doc.setFontSize(14);
-              doc.text(`${slide.title || 'Untitled'} (continued)`, 20, yPosition);
-              yPosition += 20;
+              const continuationTitle = `${slide.title || 'Untitled'} (continued)`;
+              const continuationLines = doc.splitTextToSize(continuationTitle, 170);
+              doc.text(continuationLines, 20, yPosition);
+              yPosition += continuationLines.length * 6 + 10;
               doc.setFontSize(12);
             }
             
@@ -187,10 +191,16 @@ export class DeckExportController {
         
         const contentSlide = pptx.addSlide();
         
-        // Slide title
-        contentSlide.addText(slide.title || 'Untitled', { 
+        // Slide title with truncation to prevent overflow
+        let slideTitle = slide.title || 'Untitled';
+        const maxTitleLength = 60; // Character limit for slide titles
+        if (slideTitle.length > maxTitleLength) {
+          slideTitle = slideTitle.substring(0, maxTitleLength) + '...';
+        }
+        
+        contentSlide.addText(slideTitle, { 
           x: 0.5, y: 0.5, w: 9, h: 1, 
-          fontSize: 24, bold: true, color: '0066CC'
+          fontSize: 24, bold: true, color: '0066CC', wrap: true
         });
         
         // Slide content with better sizing

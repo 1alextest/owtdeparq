@@ -32,6 +32,11 @@ export class Project {
   @ApiProperty({ description: 'Name of the project' })
   name: string;
 
+  @Column({ type: 'text', nullable: true })
+  @IsString()
+  @ApiProperty({ description: 'Description of the project', required: false })
+  description?: string;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   @ApiProperty({ description: 'Project creation timestamp' })
   createdAt: Date;

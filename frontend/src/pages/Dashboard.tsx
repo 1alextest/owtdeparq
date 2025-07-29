@@ -39,7 +39,14 @@ export const Dashboard: React.FC = () => {
       
       // Call the real API
       const projects = await apiClient.getProjects();
-      setProjects(projects);
+      
+      // Ensure projects is always an array
+      if (Array.isArray(projects)) {
+        setProjects(projects);
+      } else {
+        console.warn('API returned non-array projects data:', projects);
+        setProjects([]);
+      }
     } catch (err: any) {
       console.error('Error loading projects:', err);
       
@@ -257,13 +264,13 @@ export const Dashboard: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
               <p className="mt-4 text-gray-600">Loading projects...</p>
             </div>
-          ) : projects.length === 0 ? (
+          ) : !Array.isArray(projects) || projects.length === 0 ? (
             <EmptyState onCreateProject={() => setIsCreateModalOpen(true)} />
           ) : (
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-medium text-gray-900">
-                  Your Projects ({projects.length})
+                  Your Projects ({Array.isArray(projects) ? projects.length : 0})
                 </h2>
                 <button
                   onClick={loadProjects}
@@ -277,7 +284,7 @@ export const Dashboard: React.FC = () => {
               </div>
               
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {projects.map((project) => (
+                {Array.isArray(projects) && projects.map((project) => (
                   <ProjectCard
                     key={project.id}
                     project={project}

@@ -97,17 +97,24 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({ deckId, projectId }) => 
   };
 
   const handleSlideReorder = async (reorderedSlides: Slide[]) => {
+    // Store original order for rollback
+    const originalSlides = [...slides];
+    
     try {
       setSaving(true);
+      
+      // Optimistically update UI
+      setSlides(reorderedSlides);
       
       // Prepare slide IDs in the new order for API
       const slideIds = reorderedSlides.map(slide => slide.id);
 
       await apiClient.reorderSlides(slideIds);
       
-      // Update local state
-      setSlides(reorderedSlides);
+      // API success - state is already updated optimistically
     } catch (err) {
+      // Rollback to original order on error
+      setSlides(originalSlides);
       setError(err instanceof Error ? err.message : 'Failed to reorder slides');
     } finally {
       setSaving(false);
@@ -337,6 +344,18 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({ deckId, projectId }) => 
                   slide={selectedSlide}
                   slideNumber={slides.findIndex(s => s.id === selectedSlide.id) + 1}
                   totalSlides={slides.length}
+                  onPrevious={() => {
+                    const currentIndex = slides.findIndex(s => s.id === selectedSlide.id);
+                    if (currentIndex > 0) {
+                      setSelectedSlideId(slides[currentIndex - 1].id);
+                    }
+                  }}
+                  onNext={() => {
+                    const currentIndex = slides.findIndex(s => s.id === selectedSlide.id);
+                    if (currentIndex < slides.length - 1) {
+                      setSelectedSlideId(slides[currentIndex + 1].id);
+                    }
+                  }}
                 />
               ) : (
                 <div className="bg-white rounded-lg shadow-sm border-2 border-dashed border-gray-300 h-full flex items-center justify-center">

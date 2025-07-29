@@ -45,6 +45,39 @@ export class SlidesService {
     return await this.slideRepository.save(slide);
   }
 
+  async autosave(id: string, updateSlideDto: UpdateSlideDto, userId: string): Promise<{ timestamp: string }> {
+    const slide = await this.findOne(id, userId);
+
+    Object.assign(slide, updateSlideDto);
+    await this.slideRepository.save(slide);
+    
+    return { timestamp: new Date().toISOString() };
+  }
+
+  async duplicate(id: string, userId: string): Promise<Slide> {
+    const originalSlide = await this.findOne(id, userId);
+
+    // Create a new slide with the same content but incremented order
+    const duplicatedSlide = this.slideRepository.create({
+      deckId: originalSlide.deckId,
+      title: `${originalSlide.title} (Copy)`,
+      content: originalSlide.content,
+      speakerNotes: originalSlide.speakerNotes,
+      slideType: originalSlide.slideType,
+      slideOrder: originalSlide.slideOrder + 1,
+      generatedBy: originalSlide.generatedBy,
+    });
+
+    // Update the order of all slides after the original slide
+    await this.slideRepository.query(`
+      UPDATE slides 
+      SET slide_order = slide_order + 1 
+      WHERE deck_id = $1 AND slide_order > $2
+    `, [originalSlide.deckId, originalSlide.slideOrder]);
+
+    return await this.slideRepository.save(duplicatedSlide);
+  }
+
   async reorderSlides(slideIds: string[], userId: string): Promise<void> {
     // Verify all slides belong to the same deck and user owns it
     const slides = await this.slideRepository.find({
@@ -65,12 +98,23 @@ export class SlidesService {
     // Verify ownership
     await this.decksService.verifyDeckOwnership(deckId, userId);
 
-    // Update slide orders
-    const updatePromises = slideIds.map((slideId, index) => {
-      return this.slideRepository.update(slideId, { slideOrder: index });
+    // Use transaction for atomic batch update to prevent race conditions
+    await this.slideRepository.manager.transaction(async transactionalEntityManager => {
+      // Build batch update cases for better performance
+      const cases = slideIds.map((slideId, index) =>
+        `WHEN id = '${slideId}' THEN ${index}`
+      ).join(' ');
+      
+      const slideIdsStr = slideIds.map(id => `'${id}'`).join(',');
+      
+      // Single SQL query instead of multiple individual updates
+      await transactionalEntityManager.query(`
+        UPDATE slides
+        SET slide_order = CASE ${cases} END,
+            updated_at = NOW()
+        WHERE id IN (${slideIdsStr})
+      `);
     });
-
-    await Promise.all(updatePromises);
   }
 
   async remove(id: string, userId: string): Promise<void> {

@@ -8,6 +8,8 @@ interface Slide {
   type: string;
   title: string;
   content: string;
+  speakerNotes?: string;
+  speaker_notes?: string; // Backend might use snake_case
   slide_order: number;
   created_at: string;
   updated_at: string;
@@ -46,7 +48,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   useEffect(() => {
     setTitle(slide.title);
     setContent(slide.content);
-    setSpeakerNotes(''); // Speaker notes would come from API if available
+    setSpeakerNotes((slide as any).speakerNotes || (slide as any).speaker_notes || ''); // Load existing speaker notes
     setHasUnsavedChanges(false);
   }, [slide]);
 
@@ -71,7 +73,8 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     try {
       await onSlideUpdate(slide.id, {
         title: title.trim(),
-        content: content.trim()
+        content: content.trim(),
+        speakerNotes: speakerNotes.trim()
       });
       setHasUnsavedChanges(false);
     } catch (error) {
@@ -111,7 +114,8 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
       // Update the slide with approved content
       await onSlideUpdate(slide.id, {
         title: approvedContent.title,
-        content: approvedContent.content
+        content: approvedContent.content,
+        speakerNotes: approvedContent.speaker_notes
       });
       
       // Update local state
@@ -171,7 +175,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
           await apiClient.autosaveSlide(slide.id, {
             title: title.trim(),
             content: content.trim(),
-            speaker_notes: speakerNotes.trim()
+            speakerNotes: speakerNotes.trim()
           });
           setHasUnsavedChanges(false);
         } catch (error) {

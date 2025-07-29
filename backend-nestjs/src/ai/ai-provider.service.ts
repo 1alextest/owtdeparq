@@ -8,6 +8,7 @@ import { OllamaProvider } from './providers/ollama.provider';
 import { GroqProvider } from './providers/groq.provider';
 import { SlideType } from '../entities/slide.entity';
 import { PromptContext } from './prompts/prompt-templates';
+import { AIErrorHandler, AIError } from './utils/error-handler';
 
 export interface AIProvider {
   name: string;
@@ -46,6 +47,37 @@ export class AiProviderService {
       ['local', this.ollamaProvider as any],
       ['groq', this.groqProvider as any],
     ]);
+    
+    // Validate provider configurations on startup
+    this.validateProviderConfigurations();
+  }
+
+  private validateProviderConfigurations(): void {
+    this.logger.log('Validating AI provider configurations...');
+    
+    const warnings: string[] = [];
+    
+    // Check OpenAI configuration
+    if (!process.env.OPENAI_API_KEY) {
+      warnings.push('OpenAI API key not configured - OpenAI provider will be unavailable');
+    }
+    
+    // Check Groq configuration
+    if (!process.env.GROQ_API_KEY) {
+      warnings.push('Groq API key not configured - Groq provider will be unavailable');
+    }
+    
+    // Check Ollama configuration
+    if (!process.env.OLLAMA_BASE_URL) {
+      warnings.push('Ollama base URL not configured - Local AI provider will be unavailable');
+    }
+    
+    if (warnings.length > 0) {
+      this.logger.warn('AI Provider Configuration Warnings:');
+      warnings.forEach(warning => this.logger.warn(`  - ${warning}`));
+    } else {
+      this.logger.log('All AI providers properly configured');
+    }
   }
 
   async generateSlideContent(
@@ -60,18 +92,29 @@ export class AiProviderService {
         this.logger.log(`Attempting slide generation with ${providerName}`);
         const provider = this.providers.get(providerName);
 
+        if (!provider) {
+          this.logger.warn(`Provider ${providerName} not found`);
+          continue;
+        }
+
         const result = await provider.generateSlideContent(slideType, context, options);
+
+        if (!result) {
+          this.logger.warn(`Provider ${providerName} returned null result`);
+          continue;
+        }
 
         return {
           success: true,
           content: result,
           provider: providerName,
-          model: result.model,
-          tokensUsed: result.tokensUsed,
-          confidence: result.confidence,
+          model: result?.model || 'unknown',
+          tokensUsed: result?.tokensUsed || 0,
+          confidence: result?.confidence || 0.5,
         };
       } catch (error) {
-        this.logger.warn(`Provider ${providerName} failed: ${error.message}`);
+        const aiError = AIErrorHandler.handleProviderError(error, providerName, 'slide generation');
+        this.logger.warn(`Provider ${providerName} failed: ${aiError.message}`);
         continue;
       }
     }
@@ -106,6 +149,11 @@ export class AiProviderService {
         const slides = await provider.generateFreeFormDeck(prompt, options);
         this.logger.log(`${providerName} generation successful, got ${slides?.length || 0} slides`);
 
+        if (!slides || !Array.isArray(slides)) {
+          this.logger.warn(`Provider ${providerName} returned invalid slides format`);
+          continue;
+        }
+
         return {
           success: true,
           content: slides,
@@ -113,7 +161,8 @@ export class AiProviderService {
           model: options.model || 'default',
         };
       } catch (error) {
-        this.logger.warn(`Provider ${providerName} failed: ${error.message}`);
+        const aiError = AIErrorHandler.handleProviderError(error, providerName, 'deck generation');
+        this.logger.warn(`Provider ${providerName} failed: ${aiError.message}`);
         continue;
       }
     }
@@ -138,12 +187,22 @@ export class AiProviderService {
       try {
         const provider = this.providers.get(providerName);
 
+        if (!provider) {
+          this.logger.warn(`Provider ${providerName} not found`);
+          continue;
+        }
+
         const response = await provider.generateChatResponse(
           userMessage,
           deckContext,
           slideContext,
           options
         );
+
+        if (!response || typeof response !== 'string') {
+          this.logger.warn(`Provider ${providerName} returned invalid chat response`);
+          continue;
+        }
 
         return {
           success: true,
@@ -152,7 +211,8 @@ export class AiProviderService {
           model: options.model || 'default',
         };
       } catch (error) {
-        this.logger.warn(`Chat provider ${providerName} failed: ${error.message}`);
+        const aiError = AIErrorHandler.handleProviderError(error, providerName, 'chat generation');
+        this.logger.warn(`Chat provider ${providerName} failed: ${aiError.message}`);
         continue;
       }
     }

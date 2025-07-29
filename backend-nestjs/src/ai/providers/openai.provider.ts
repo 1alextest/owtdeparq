@@ -66,11 +66,23 @@ export class OpenaiProvider {
         temperature: options.temperature || 0.7,
       });
 
+      if (!response || !response.choices || response.choices.length === 0) {
+        throw new Error('Invalid response from OpenAI API');
+      }
+
       const content = response.choices[0]?.message?.content || '';
       const tokensUsed = response.usage?.total_tokens || 0;
 
+      if (!content.trim()) {
+        throw new Error('Empty response from OpenAI API');
+      }
+
       // Parse the structured response
       const parsed = this.parseSlideResponse(content, slideType);
+
+      if (!parsed || !parsed.title || !parsed.content) {
+        throw new Error('Failed to parse OpenAI response');
+      }
 
       return {
         ...parsed,
@@ -119,8 +131,23 @@ export class OpenaiProvider {
         temperature: options.temperature || 0.7,
       });
 
+      if (!response || !response.choices || response.choices.length === 0) {
+        throw new Error('Invalid response from OpenAI API');
+      }
+
       const content = response.choices[0]?.message?.content || '';
-      return this.parseDeckResponse(content);
+      
+      if (!content.trim()) {
+        throw new Error('Empty response from OpenAI API');
+      }
+
+      const slides = this.parseDeckResponse(content);
+      
+      if (!slides || !Array.isArray(slides) || slides.length === 0) {
+        throw new Error('Failed to parse deck slides from OpenAI response');
+      }
+
+      return slides;
     } catch (error) {
       this.logger.error('OpenAI free-form generation failed:', error);
       throw new Error(`OpenAI generation failed: ${error.message}`);
@@ -153,7 +180,17 @@ export class OpenaiProvider {
         temperature: options.temperature || 0.8,
       });
 
-      return response.choices[0]?.message?.content || 'I apologize, but I could not generate a response.';
+      if (!response || !response.choices || response.choices.length === 0) {
+        return 'I apologize, but I could not generate a response due to an API error.';
+      }
+
+      const content = response.choices[0]?.message?.content;
+      
+      if (!content || !content.trim()) {
+        return 'I apologize, but I could not generate a response.';
+      }
+
+      return content;
     } catch (error) {
       this.logger.error('OpenAI chat generation failed:', error);
       throw new Error(`Chat generation failed: ${error.message}`);
@@ -207,21 +244,35 @@ export class OpenaiProvider {
   }
 
   private parseDeckResponse(content: string): any[] {
+    if (!content || typeof content !== 'string') {
+      return [];
+    }
+
     const slides = [];
     const slideMatches = content.match(/SLIDE \d+:[\s\S]*?(?=SLIDE \d+:|$)/gi);
 
-    if (slideMatches) {
+    if (slideMatches && slideMatches.length > 0) {
       slideMatches.forEach((slideText, index) => {
+        if (!slideText || typeof slideText !== 'string') {
+          return;
+        }
+
         const typeMatch = slideText.match(/SLIDE \d+:\s*(.+)/i);
         const titleMatch = slideText.match(/Title:\s*(.+)/i);
         const contentMatch = slideText.match(/Content:\s*([\s\S]+?)(?=---|$)/i);
 
-        slides.push({
-          slideOrder: index,
-          slideType: this.mapSlideTypeName(typeMatch?.[1] || ''),
-          title: titleMatch?.[1]?.trim() || `Slide ${index + 1}`,
-          content: contentMatch?.[1]?.trim() || '',
-        });
+        const title = titleMatch?.[1]?.trim() || `Slide ${index + 1}`;
+        const slideContent = contentMatch?.[1]?.trim() || '';
+
+        // Only add slides with meaningful content
+        if (title && slideContent) {
+          slides.push({
+            slideOrder: index,
+            slideType: this.mapSlideTypeName(typeMatch?.[1] || ''),
+            title,
+            content: slideContent,
+          });
+        }
       });
     }
 

@@ -139,7 +139,12 @@ class ApiClient {
 
   // Project-specific methods
   async getProjects(): Promise<Project[]> {
-    return this.get<Project[]>('/projects');
+    const response = await this.get<{
+      projects: Project[];
+      total: number;
+      hasMore: boolean;
+    }>('/projects');
+    return response.projects;
   }
 
   async createProject(projectData: CreateProjectDto): Promise<Project> {

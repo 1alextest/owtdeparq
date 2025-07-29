@@ -97,21 +97,49 @@ export class ExportService {
     this.logger.log(`Generating multiple formats for deck ${deckId}: ${formats.join(', ')}`);
 
     const deck = await this.decksService.findOne(deckId, userId);
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    const chunks: Buffer[] = [];
+    const archive = archiver('zip', {
+      zlib: { level: 9 },
+      // Add memory management options
+      highWaterMark: 1024 * 1024, // 1MB chunks
+      chunkSize: 1024 * 1024
+    });
+    
+    // Use streaming approach to prevent memory buildup
+    const buffers: Buffer[] = [];
+    let totalSize = 0;
+    const MAX_MEMORY_SIZE = 100 * 1024 * 1024; // 100MB limit
 
-    archive.on('data', (chunk) => chunks.push(chunk));
-
-    const archivePromise = new Promise<Buffer>((resolve, reject) => {
-      archive.on('end', () => resolve(Buffer.concat(chunks)));
-      archive.on('error', reject);
+    archive.on('data', (chunk: Buffer) => {
+      totalSize += chunk.length;
+      if (totalSize > MAX_MEMORY_SIZE) {
+        archive.destroy(new Error('Export size exceeds memory limit'));
+        return;
+      }
+      buffers.push(chunk);
     });
 
-    // Generate each format
+    const archivePromise = new Promise<Buffer>((resolve, reject) => {
+      archive.on('end', () => {
+        const result = Buffer.concat(buffers);
+        // Clear buffers to free memory
+        buffers.length = 0;
+        resolve(result);
+      });
+      archive.on('error', (error) => {
+        // Clear buffers on error
+        buffers.length = 0;
+        reject(error);
+      });
+    });
+
+    // Generate each format with error handling
     for (const format of formats) {
       try {
         const result = await this.exportDeck(deckId, userId, { format: format as any });
         archive.append(result.buffer, { name: result.filename });
+        
+        // Clear the result buffer after appending to free memory
+        result.buffer = null as any;
       } catch (error) {
         this.logger.error(`Failed to generate ${format}:`, error);
         // Continue with other formats

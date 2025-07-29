@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpException,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ProjectsService } from './projects.service';
@@ -42,9 +43,26 @@ export class ProjectsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all projects for the authenticated user' })
-  @ApiResponse({ status: 200, description: 'List of user projects', type: [Project] })
-  findAll(@User() user: AuthenticatedUser): Promise<Project[]> {
-    return this.projectsService.findAllByUser(user.uid);
+  @ApiResponse({ status: 200, description: 'List of user projects with pagination', schema: {
+    type: 'object',
+    properties: {
+      projects: { type: 'array', items: { $ref: '#/components/schemas/Project' } },
+      total: { type: 'number' },
+      hasMore: { type: 'boolean' }
+    }
+  }})
+  findAll(
+    @User() user: AuthenticatedUser,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ): Promise<{
+    projects: Project[];
+    total: number;
+    hasMore: boolean;
+  }> {
+    const limitNum = limit ? Math.min(parseInt(limit), 100) : 50; // Max 100 items
+    const offsetNum = offset ? parseInt(offset) : 0;
+    return this.projectsService.findAllByUser(user.uid, limitNum, offsetNum);
   }
 
   @Get(':id')

@@ -69,10 +69,22 @@ export class OllamaProvider {
         timeout: 60000, // 60 second timeout
       });
 
+      if (!response || !response.data || typeof response.data.response !== 'string') {
+        throw new Error('Invalid response from Ollama API');
+      }
+
       const content = response.data.response || '';
+
+      if (!content.trim()) {
+        throw new Error('Empty response from Ollama API');
+      }
 
       // Parse the structured response
       const parsed = this.parseSlideResponse(content, slideType);
+
+      if (!parsed || !parsed.title || !parsed.content) {
+        throw new Error('Failed to parse Ollama response');
+      }
 
       return {
         ...parsed,
@@ -135,9 +147,23 @@ export class OllamaProvider {
         timeout: 60000, // 1 minute timeout for testing
       });
 
+      if (!response || !response.data || typeof response.data.response !== 'string') {
+        throw new Error('Invalid response from Ollama API');
+      }
+
       this.logger.log(`Ollama response received, length: ${response.data.response?.length || 0}`);
       const content = response.data.response || '';
+      
+      if (!content.trim()) {
+        throw new Error('Empty response from Ollama API');
+      }
+
       const parsedSlides = this.parseDeckResponse(content);
+      
+      if (!parsedSlides || !Array.isArray(parsedSlides) || parsedSlides.length === 0) {
+        throw new Error('Failed to parse deck slides from Ollama response');
+      }
+
       this.logger.log(`Parsed ${parsedSlides.length} slides from Ollama response`);
       return parsedSlides;
     } catch (error) {
@@ -187,7 +213,17 @@ export class OllamaProvider {
         timeout: 30000, // 30 second timeout for chat
       });
 
-      return response.data.response || 'I apologize, but I could not generate a response.';
+      if (!response || !response.data || typeof response.data.response !== 'string') {
+        return 'I apologize, but I could not generate a response due to an API error.';
+      }
+
+      const content = response.data.response;
+      
+      if (!content || !content.trim()) {
+        return 'I apologize, but I could not generate a response.';
+      }
+
+      return content;
     } catch (error) {
       this.logger.error('Ollama chat generation failed:', error);
       throw new Error(`Chat generation failed: ${error.message}`);
@@ -281,6 +317,10 @@ Please provide a detailed, professional response:`;
   }
 
   private parseDeckResponse(content: string): any[] {
+    if (!content || typeof content !== 'string') {
+      return [];
+    }
+
     const slides = [];
 
     // Try to parse structured format first
@@ -288,38 +328,51 @@ Please provide a detailed, professional response:`;
 
     if (slideMatches && slideMatches.length > 0) {
       slideMatches.forEach((slideText, index) => {
+        if (!slideText || typeof slideText !== 'string') {
+          return;
+        }
+
         const typeMatch = slideText.match(/SLIDE \d+:\s*(.+)/i);
         const titleMatch = slideText.match(/Title:\s*(.+)/i);
         const contentMatch = slideText.match(/Content:\s*([\s\S]+?)(?=---|$)/i);
 
-        slides.push({
-          slideOrder: index,
-          slideType: this.mapSlideTypeName(typeMatch?.[1] || ''),
-          title: titleMatch?.[1]?.trim() || `Slide ${index + 1}`,
-          content: contentMatch?.[1]?.trim() || '',
-        });
+        const title = titleMatch?.[1]?.trim() || `Slide ${index + 1}`;
+        const slideContent = contentMatch?.[1]?.trim() || '';
+
+        // Only add slides with meaningful content
+        if (title && slideContent) {
+          slides.push({
+            slideOrder: index,
+            slideType: this.mapSlideTypeName(typeMatch?.[1] || ''),
+            title,
+            content: slideContent,
+          });
+        }
       });
     } else {
       // Fallback: split by common slide indicators
       const sections = content.split(/(?=\d+\.\s|(?:Cover|Problem|Solution|Market|Product|Business|Team|Financial|Traction|Funding))/i);
 
       sections.forEach((section, index) => {
-        if (section.trim()) {
+        if (section && typeof section === 'string' && section.trim()) {
           const lines = section.trim().split('\n');
           const title = lines[0]?.replace(/^\d+\.\s*/, '').trim() || `Slide ${index + 1}`;
-          const content = lines.slice(1).join('\n').trim();
+          const slideContent = lines.slice(1).join('\n').trim();
 
-          slides.push({
-            slideOrder: index,
-            slideType: this.inferSlideType(title),
-            title,
-            content,
-          });
+          // Only add slides with meaningful content
+          if (title && slideContent) {
+            slides.push({
+              slideOrder: index,
+              slideType: this.inferSlideType(title),
+              title,
+              content: slideContent,
+            });
+          }
         }
       });
     }
 
-    return slides.filter(slide => slide.title && slide.content);
+    return slides.filter(slide => slide && slide.title && slide.content);
   }
 
   private calculateConfidence(content: string): number {

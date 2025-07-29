@@ -7,8 +7,9 @@ interface Deck {
   id: string;
   title: string;
   description?: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
+  slides?: any[];
   slide_count?: number;
 }
 
@@ -36,8 +37,9 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       const project = await apiClient.getProject(projectId);
       setProject(project);
 
-      // For now, set empty decks array since deck functionality isn't implemented yet
-      setDecks([]);
+      // Load project decks from API
+      const projectDecks = await apiClient.getProjectDecks(projectId);
+      setDecks(projectDecks);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to load project data"
@@ -256,7 +258,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                 />
                               </svg>
-                              <span>{deck.slide_count || 0} slides</span>
+                              <span>{deck.slides?.length || deck.slide_count || 0} slides</span>
                             </div>
                             <div className="flex items-center">
                               <svg
@@ -272,7 +274,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
                                   d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a2 2 0 012 2v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2z"
                                 />
                               </svg>
-                              <span>Updated {formatDate(deck.updated_at)}</span>
+                              <span>Updated {formatDate(deck.updatedAt)}</span>
                             </div>
                           </div>
                         </div>

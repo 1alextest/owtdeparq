@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Patch,
+  Put,
   Param,
   Delete,
   UseGuards,
@@ -53,6 +54,38 @@ export class SlidesController {
     @User() user: AuthenticatedUser,
   ): Promise<Slide> {
     return this.slidesService.update(id, updateSlideDto, user.uid);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update a slide (PUT method)' })
+  @ApiResponse({ status: 200, description: 'Slide updated successfully', type: Slide })
+  updatePut(
+    @Param('id') id: string,
+    @Body() updateSlideDto: UpdateSlideDto,
+    @User() user: AuthenticatedUser,
+  ): Promise<Slide> {
+    return this.slidesService.update(id, updateSlideDto, user.uid);
+  }
+
+  @Patch(':id/autosave')
+  @ApiOperation({ summary: 'Autosave slide changes' })
+  @ApiResponse({ status: 200, description: 'Slide autosaved successfully' })
+  autosave(
+    @Param('id') id: string,
+    @Body() updateSlideDto: UpdateSlideDto,
+    @User() user: AuthenticatedUser,
+  ): Promise<{ timestamp: string }> {
+    return this.slidesService.autosave(id, updateSlideDto, user.uid);
+  }
+
+  @Post(':id/duplicate')
+  @ApiOperation({ summary: 'Duplicate a slide' })
+  @ApiResponse({ status: 201, description: 'Slide duplicated successfully', type: Slide })
+  duplicate(
+    @Param('id') id: string,
+    @User() user: AuthenticatedUser,
+  ): Promise<Slide> {
+    return this.slidesService.duplicate(id, user.uid);
   }
 
   @Post('reorder')
