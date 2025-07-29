@@ -50,7 +50,7 @@ npm test           # Run tests
 ```bash
 cd backend-nestjs
 npm install
-npm run start:dev  # Development server on :5000
+npm run start:dev  # Development server on :3001
 npm run build      # Production build
 npm run test       # Run tests
 npm run lint       # Code linting

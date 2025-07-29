@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '../App';
 import { Project } from '../types';
@@ -6,6 +6,7 @@ import { ProjectCard } from '../components/projects/ProjectCard';
 import { CreateProjectModal } from '../components/projects/CreateProjectModal';
 import { EditProjectModal } from '../components/projects/EditProjectModal';
 import { EmptyState } from '../components/projects/EmptyState';
+import { WelcomeFlow } from '../components/onboarding/WelcomeFlow';
 import { apiClient } from '../services/apiClient';
 
 export const Dashboard: React.FC = () => {
@@ -19,15 +20,10 @@ export const Dashboard: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [showWelcomeFlow, setShowWelcomeFlow] = useState(false);
+  const [isFirstTime, setIsFirstTime] = useState(false);
 
-  // Load projects when user is authenticated
-  useEffect(() => {
-    if (user && !authLoading) {
-      loadProjects();
-    }
-  }, [user, authLoading]); // Load projects when user state changes
-
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -43,6 +39,12 @@ export const Dashboard: React.FC = () => {
       // Ensure projects is always an array
       if (Array.isArray(projects)) {
         setProjects(projects);
+        
+        // If user has no projects and hasn't seen welcome, show it
+        if (projects.length === 0 && !localStorage.getItem('hasSeenWelcome')) {
+          setIsFirstTime(true);
+          setShowWelcomeFlow(true);
+        }
       } else {
         console.warn('API returned non-array projects data:', projects);
         setProjects([]);
@@ -63,7 +65,23 @@ export const Dashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, logout]);
+
+  // Load projects when user is authenticated
+  useEffect(() => {
+    if (user && !authLoading) {
+      loadProjects();
+    }
+  }, [user, authLoading, loadProjects]); // Load projects when user state changes
+
+  // Check if this is a first-time user
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    if (!hasSeenWelcome && user && !authLoading) {
+      setIsFirstTime(true);
+      setShowWelcomeFlow(true);
+    }
+  }, [user, authLoading]);
 
   const handleCreateProject = async (name: string, description?: string) => {
     try {
@@ -186,6 +204,16 @@ export const Dashboard: React.FC = () => {
     await logout();
   };
 
+  const handleWelcomeComplete = () => {
+    localStorage.setItem('hasSeenWelcome', 'true');
+    setShowWelcomeFlow(false);
+    setIsFirstTime(false);
+  };
+
+  const handleQuickStart = () => {
+    setShowWelcomeFlow(true);
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -204,22 +232,41 @@ export const Dashboard: React.FC = () => {
 
   return (
     <>
+      {/* Welcome Flow */}
+      {showWelcomeFlow && (
+        <WelcomeFlow onComplete={handleWelcomeComplete} />
+      )}
+
       {/* Page Header */}
-      <div className="bg-white shadow">
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl font-semibold text-gray-900">
                 Your Projects
               </h1>
-              <p className="text-sm text-gray-600">
-                Manage your pitch deck projects and presentations
+              <p className="text-sm text-gray-500">
+                {Array.isArray(projects) && projects.length > 0 
+                  ? `${projects.length} project${projects.length !== 1 ? 's' : ''}`
+                  : 'Create your first pitch deck project'
+                }
               </p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              {Array.isArray(projects) && projects.length > 0 && (
+                <button
+                  onClick={handleQuickStart}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors inline-flex items-center text-sm font-medium"
+                >
+                  <svg className="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Quick Start
+                </button>
+              )}
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center text-sm font-medium"
               >
                 <svg className="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -232,8 +279,8 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+      <div className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-0">
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
               <div className="flex">
@@ -265,7 +312,10 @@ export const Dashboard: React.FC = () => {
               <p className="mt-4 text-gray-600">Loading projects...</p>
             </div>
           ) : !Array.isArray(projects) || projects.length === 0 ? (
-            <EmptyState onCreateProject={() => setIsCreateModalOpen(true)} />
+            <EmptyState 
+              onCreateProject={() => setIsCreateModalOpen(true)} 
+              onQuickStart={handleQuickStart}
+            />
           ) : (
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -283,7 +333,7 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 items-stretch project-card-grid">
                 {Array.isArray(projects) && projects.map((project) => (
                   <ProjectCard
                     key={project.id}

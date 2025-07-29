@@ -1,0 +1,225 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Project } from '../../types';
+import { useNavigation } from '../../App';
+
+interface ProjectListViewProps {
+  projects: Project[];
+  onSelect: (project: Project) => void;
+  onEdit: (project: Project) => void;
+  onDelete: (project: Project) => void;
+  onDuplicate: (project: Project) => void;
+}
+
+export const ProjectListView: React.FC<ProjectListViewProps> = ({
+  projects,
+  onSelect,
+  onEdit,
+  onDelete,
+  onDuplicate
+}) => {
+  const { navigate } = useNavigation();
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Unknown';
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const getStatusColor = (deckCount: number) => {
+    if (deckCount === 0) return 'bg-gray-100 text-gray-800';
+    if (deckCount <= 2) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
+  };
+
+  const getStatusText = (deckCount: number) => {
+    if (deckCount === 0) return 'No decks';
+    if (deckCount === 1) return '1 deck';
+    return `${deckCount} decks`;
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleDropdownToggle = (projectId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpenDropdown(openDropdown === projectId ? null : projectId);
+  };
+
+  return (
+    <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+      {/* Header */}
+      <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+        <div className="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <div className="col-span-4">Project</div>
+          <div className="col-span-2">Status</div>
+          <div className="col-span-2">Created</div>
+          <div className="col-span-2">Modified</div>
+          <div className="col-span-2">Actions</div>
+        </div>
+      </div>
+
+      {/* Project List */}
+      <div className="divide-y divide-gray-200">
+        {projects.map((project) => (
+          <div
+            key={project.id}
+            className="px-6 py-4 hover:bg-gray-50 transition-colors group"
+          >
+            <div className="grid grid-cols-12 gap-4 items-center">
+              {/* Project Info */}
+              <div className="col-span-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <button
+                      onClick={() => onSelect(project)}
+                      className="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors text-left"
+                    >
+                      {project.name}
+                    </button>
+                    {project.description && (
+                      <p className="text-sm text-gray-500 mt-1 line-clamp-1">
+                        {project.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="col-span-2">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(project.deck_count || 0)}`}>
+                  {getStatusText(project.deck_count || 0)}
+                </span>
+              </div>
+
+              {/* Created Date */}
+              <div className="col-span-2">
+                <span className="text-sm text-gray-500">
+                  {formatDate(project.created_at)}
+                </span>
+              </div>
+
+              {/* Modified Date */}
+              <div className="col-span-2">
+                <span className="text-sm text-gray-500">
+                  {formatDate(project.updated_at)}
+                </span>
+              </div>
+
+              {/* Actions */}
+              <div className="col-span-2">
+                <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Generate Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/projects/${project.id}/generate`);
+                    }}
+                    className="p-1.5 text-green-600 hover:bg-green-100 rounded-md transition-colors"
+                    title="Generate deck"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </button>
+
+                  {/* Edit Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(project);
+                    }}
+                    className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
+                    title="Edit project"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+
+                  {/* More Actions Dropdown */}
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      onClick={(e) => handleDropdownToggle(project.id, e)}
+                      className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-md transition-colors"
+                      title="More actions"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                      </svg>
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {openDropdown === project.id && (
+                      <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                        <div className="py-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDuplicate(project);
+                              setOpenDropdown(null);
+                            }}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          >
+                            <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Duplicate Project
+                          </button>
+                          
+                          <hr className="my-1" />
+                          
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete(project);
+                              setOpenDropdown(null);
+                            }}
+                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete Project
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Empty State */}
+      {projects.length === 0 && (
+        <div className="px-6 py-12 text-center">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No projects</h3>
+          <p className="mt-1 text-sm text-gray-500">Get started by creating a new project</p>
+        </div>
+      )}
+    </div>
+  );
+};

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ModeSelector, GenerationMode } from '../components/generation/ModeSelector';
 import { FreePromptForm } from '../components/generation/FreePromptForm';
-import { CustomForm } from '../components/generation/CustomForm';
-import { GenerationProgress } from '../components/generation/GenerationProgress';
+import { CustomFormWizard } from '../components/generation/CustomFormWizard';
+import { EnhancedGenerationProgress } from '../components/generation/EnhancedGenerationProgress';
 import { useNavigation } from '../App';
 import { apiClient } from '../services/apiClient';
 
@@ -71,17 +71,26 @@ export const GenerationPage: React.FC<GenerationPageProps> = ({ projectId }) => 
   return (
     <>
       {/* Page Header */}
-      <div className="bg-white shadow">
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl font-semibold text-gray-900">
                 Generate Pitch Deck
               </h1>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-500">
                 Create a professional investor presentation with AI
               </p>
             </div>
+            <button
+              onClick={goBack}
+              className="text-gray-500 hover:text-gray-700 inline-flex items-center text-sm"
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Project
+            </button>
           </div>
         </div>
       </div>
@@ -107,7 +116,7 @@ export const GenerationPage: React.FC<GenerationPageProps> = ({ projectId }) => 
           )}
 
           {selectedMode === 'custom' && (
-            <CustomForm
+            <CustomFormWizard
               onSubmit={handleCustomGeneration}
               loading={isGenerating}
               error={error}
@@ -118,7 +127,7 @@ export const GenerationPage: React.FC<GenerationPageProps> = ({ projectId }) => 
       </div>
 
       {/* Generation Progress Modal */}
-      <GenerationProgress
+      <EnhancedGenerationProgress
         isVisible={isGenerating}
         onCancel={handleCancel}
         estimatedTime={30}

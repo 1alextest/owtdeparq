@@ -69,3 +69,39 @@ jspm_packages/
 .kilocode/
 .github/copilot-instructions.md
 CLAUDE.md
+
+# Additional Railway deployment entries
+*.stackdump
+.nyc_output/
+tmp/
+temp/
+
+# Build directories (should not be in git)
+/frontend/build/
+/backend-nestjs/dist/
+build/
+dist/
+
+# Railway deployment
+.railway/
+
+# Security and sensitive files
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+firebase-adminsdk-*.json
+service-account-*.json
+
+# Test and debug files
+test-firebase.js
+debug-*.js
+*.test.local.js
+
+# Package manager lock files (optional - keep if you want consistent installs)
+# package-lock.json
+# yarn.lock
+
+# TypeScript build info
+*.tsbuildinfo

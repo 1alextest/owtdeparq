@@ -10,8 +10,8 @@ try {
   
   console.log('\n✅ Successfully installed Groq SDK');
   
-  // Check if package.json exists
-  const packageJsonPath = path.join(__dirname, 'package.json');
+  // Check if package.json exists (adjust path for test directory)
+  const packageJsonPath = path.join(__dirname, '../package.json');
   if (fs.existsSync(packageJsonPath)) {
     // Read the package.json file
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));

@@ -17,7 +17,7 @@ async function pullModelViaAPI() {
     console.log('The model download has started in the background.');
     console.log('This may take several minutes to complete.');
     console.log('\nTo check if the model is ready, run:');
-    console.log('node backend-nestjs/check-ollama-api.js');
+    console.log('node backend-nestjs/test/check-ollama-api.js');
     
     return true;
   } catch (error) {

@@ -2,11 +2,12 @@ import React, { useState, createContext, useContext } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { Dashboard } from './pages/Dashboard';
+import { EnhancedDashboard } from './pages/EnhancedDashboard';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { GenerationPage } from './pages/GenerationPage';
 import { DeckEditorPage } from './pages/DeckEditorPage';
 import { AppLayout } from './components/layout';
+import { TemplateDebug } from './debug/TemplateDebug';
 
 import { useAuth } from './contexts/AuthContext';
 import './App.css';
@@ -67,7 +68,8 @@ const AppContent: React.FC = () => {
     return (
       <NavigationContext.Provider value={navigationValue}>
         <AppLayout currentRoute={currentRoute}>
-          {currentRoute === '/dashboard' && <Dashboard />}
+          {currentRoute === '/dashboard' && <EnhancedDashboard />}
+          {currentRoute === '/debug' && <TemplateDebug />}
           {currentRoute.startsWith('/projects/') && !currentRoute.includes('/generate') && !currentRoute.includes('/decks/') && (
             <ProjectDetailPage projectId={currentRoute.split('/')[2]} />
           )}

@@ -39,7 +39,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
       // Load project decks from API
       const projectDecks = await apiClient.getProjectDecks(projectId);
-      setDecks(projectDecks);
+      // Ensure projectDecks is an array
+      setDecks(Array.isArray(projectDecks) ? projectDecks : []);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to load project data"
