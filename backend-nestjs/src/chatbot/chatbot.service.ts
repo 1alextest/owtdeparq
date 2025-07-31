@@ -4,9 +4,11 @@ import { Repository } from 'typeorm';
 import { ChatRequestDto, ImproveSpeakerNotesDto } from './dto/chat-request.dto';
 import { ChatContext } from '../entities/chat-context.entity';
 import { PitchDeck } from '../entities/pitch-deck.entity';
+import { Presentation } from '../entities/presentation.entity';
 import { DecksService } from '../decks/decks.service';
 import { SlidesService } from '../slides/slides.service';
 import { ProjectsService } from '../projects/projects.service';
+import { PresentationsService } from '../presentations/presentations.service';
 import { AiProviderService } from '../ai/ai-provider.service';
 import {
   isVirtualDashboardDeck,
@@ -20,9 +22,12 @@ export class ChatbotService {
     private chatRepository: Repository<ChatContext>,
     @InjectRepository(PitchDeck)
     private deckRepository: Repository<PitchDeck>,
+    @InjectRepository(Presentation)
+    private presentationRepository: Repository<Presentation>,
     private decksService: DecksService,
     private slidesService: SlidesService,
     private projectsService: ProjectsService,
+    private presentationsService: PresentationsService,
     private aiProviderService: AiProviderService,
   ) {}
 
@@ -217,13 +222,14 @@ export class ChatbotService {
       // Deck doesn't exist, we'll create it
     }
 
-    // Create a virtual project first
-    const virtualProject = await this.ensureVirtualProjectExists(userId);
+    // Create a virtual presentation first
+    const virtualPresentation = await this.ensureVirtualPresentationExists(userId);
 
     // Create the virtual deck record directly with the specific UUID
     const virtualDeck = this.deckRepository.create({
       id: virtualDeckId,
-      projectId: virtualProject.id,
+      projectId: virtualPresentation.projectId,
+      presentationId: virtualPresentation.id,
       title: 'Dashboard Conversations',
       mode: 'free',
       generationData: {
@@ -253,6 +259,29 @@ export class ChatbotService {
     return await this.projectsService.create({
       name: 'Virtual Dashboard Project',
       description: 'System project for dashboard conversations'
+    }, userId);
+  }
+
+  /**
+   * Ensure a virtual presentation exists for virtual decks
+   */
+  private async ensureVirtualPresentationExists(userId: string) {
+    // First ensure the virtual project exists
+    const virtualProject = await this.ensureVirtualProjectExists(userId);
+
+    // Try to find existing virtual presentation
+    const presentations = await this.presentationsService.findAllByProject(virtualProject.id, userId);
+    const virtualPresentation = presentations.find(p => p.name === 'Dashboard Conversations');
+
+    if (virtualPresentation) {
+      return virtualPresentation;
+    }
+
+    // Create virtual presentation
+    return await this.presentationsService.create({
+      projectId: virtualProject.id,
+      name: 'Dashboard Conversations',
+      description: 'Virtual presentation for dashboard AI conversations'
     }, userId);
   }
 

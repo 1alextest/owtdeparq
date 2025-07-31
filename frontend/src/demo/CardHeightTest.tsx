@@ -10,6 +10,7 @@ const mockProjects: Project[] = [
     name: "Short Project",
     description: "Brief description.",
     deck_count: 2,
+    presentation_count: 1,
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-01T00:00:00Z",
   },
@@ -20,6 +21,7 @@ const mockProjects: Project[] = [
     description:
       "This is a medium-length description that provides more context about the project and its goals. It should demonstrate how the card handles moderate amounts of text.",
     deck_count: 1,
+    presentation_count: 1,
     created_at: "2024-01-02T00:00:00Z",
     updated_at: "2024-01-02T00:00:00Z",
   },
@@ -30,6 +32,7 @@ const mockProjects: Project[] = [
     description:
       "This is an extremely long description that contains a lot of detailed information about the project, its objectives, methodology, expected outcomes, and various other aspects that might be relevant to stakeholders. This text is intentionally verbose to test how the card handles very long descriptions and ensures consistent height across all cards regardless of content length.",
     deck_count: 5,
+    presentation_count: 2,
     created_at: "2024-01-03T00:00:00Z",
     updated_at: "2024-01-03T00:00:00Z",
   },
@@ -39,6 +42,7 @@ const mockProjects: Project[] = [
     name: "No Description Project",
     description: "",
     deck_count: 0,
+    presentation_count: 0,
     created_at: "2024-01-04T00:00:00Z",
     updated_at: "2024-01-04T00:00:00Z",
   },
@@ -48,6 +52,7 @@ const mockProjects: Project[] = [
     name: "Another Short One",
     description: "Just a quick note.",
     deck_count: 3,
+    presentation_count: 2,
     created_at: "2024-01-05T00:00:00Z",
     updated_at: "2024-01-05T00:00:00Z",
   },
@@ -58,6 +63,7 @@ const mockProjects: Project[] = [
     description:
       "This project has a moderate description length that falls somewhere between the very short and very long examples, providing a good middle ground for testing.",
     deck_count: 2,
+    presentation_count: 1,
     created_at: "2024-01-06T00:00:00Z",
     updated_at: "2024-01-06T00:00:00Z",
   },
