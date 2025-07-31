@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { ChatMessage, ChatContext, QuickAction, MessageAction } from '../types';
 import { chatbotService } from '../services/chatbotService';
+import { useAuth } from './AuthContext';
 
 interface ChatbotState {
   isOpen: boolean;
@@ -120,6 +121,7 @@ const getQuickActionsForContext = (context: ChatContext): QuickAction[] => {
 };
 
 export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({ children }) => {
+  const { user } = useAuth();
   const [state, setState] = useState<ChatbotState>(() => {
     // Initialize state from session storage
     const savedMessages = sessionStorage.getItem(STORAGE_KEYS.MESSAGES);
@@ -202,7 +204,7 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({ children }) =>
   }, []);
 
   const sendMessage = useCallback(async (message: string) => {
-    if (!message.trim()) return;
+    if (!message.trim() || !user) return;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -220,7 +222,7 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({ children }) =>
     }));
 
     try {
-      const response = await chatbotService.sendMessage(message.trim(), state.currentContext);
+      const response = await chatbotService.sendMessage(message.trim(), state.currentContext, user.id);
       
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
@@ -242,7 +244,7 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({ children }) =>
         error: error instanceof Error ? error.message : 'Failed to send message',
       }));
     }
-  }, [state.currentContext]);
+  }, [state.currentContext, user]);
 
   const retryLastMessage = useCallback(async () => {
     const lastUserMessage = [...state.messages].reverse().find(msg => msg.role === 'user');

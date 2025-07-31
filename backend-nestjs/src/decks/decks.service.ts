@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { CreateDeckDto } from './dto/create-deck.dto';
 import { UpdateDeckDto } from './dto/update-deck.dto';
 import { PitchDeck } from '../entities/pitch-deck.entity';
 import { ProjectsService } from '../projects/projects.service';
+import { isVirtualDashboardDeck } from '../../../shared/constants/virtual-decks';
 
 @Injectable()
 export class DecksService {
@@ -61,6 +62,11 @@ export class DecksService {
   }
 
   async verifyDeckOwnership(deckId: string, userId: string): Promise<PitchDeck> {
+    // Reject virtual deck IDs in real deck operations
+    if (isVirtualDashboardDeck(deckId)) {
+      throw new NotFoundException('Cannot perform deck operations on virtual dashboard deck');
+    }
+
     const deck = await this.deckRepository.findOne({
       where: { id: deckId },
       relations: ['project'],

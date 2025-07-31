@@ -8,6 +8,7 @@ import {
   ChatContext,
   QuickAction,
 } from '../types';
+import { createDashboardVirtualDeckId } from '../../shared/constants/virtual-decks';
 
 /**
  * Service class for chatbot API integration
@@ -21,12 +22,18 @@ export class ChatbotService {
    * Send a chat message to the AI assistant
    * @param message - User message
    * @param context - Current chat context (deck/slide info)
+   * @param userId - Current user's ID
    * @returns Promise<ChatResponse>
    */
-  async sendMessage(message: string, context: ChatContext): Promise<ChatResponse> {
+  async sendMessage(message: string, context: ChatContext, userId: string): Promise<ChatResponse> {
+    // Determine the effective deck ID (real deck or virtual dashboard deck)
+    const effectiveDeckId = context.type === 'dashboard'
+      ? createDashboardVirtualDeckId(userId)
+      : context.deckId!;
+
     const request: ChatRequest = {
       message: message.trim(),
-      ...(context.deckId && { deckId: context.deckId }),
+      deckId: effectiveDeckId,
       ...(context.slideId && { slideId: context.slideId }),
       context: {
         type: context.type,

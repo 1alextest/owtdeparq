@@ -19,13 +19,23 @@ export class ChatbotController {
   constructor(private readonly chatbotService: ChatbotService) {}
 
   @Post('chat')
-  @ApiOperation({ summary: 'Chat with AI assistant for pitch deck help' })
+  @ApiOperation({ summary: 'Chat with AI assistant for specific deck/slide help' })
   @ApiResponse({ status: 200, description: 'AI response generated' })
   async chatWithAI(
     @Body() chatDto: ChatRequestDto,
     @User() user: AuthenticatedUser,
   ) {
     return this.chatbotService.chatWithAI(chatDto, user.uid);
+  }
+
+  @Post('chat/general')
+  @ApiOperation({ summary: 'General chat with AI assistant for pitch deck guidance' })
+  @ApiResponse({ status: 200, description: 'AI response generated' })
+  async generalChat(
+    @Body() chatDto: { message: string; context?: any },
+    @User() user: AuthenticatedUser,
+  ) {
+    return this.chatbotService.generalChat(chatDto.message, chatDto.context, user.uid);
   }
 
   @Post('improve-speaker-notes')

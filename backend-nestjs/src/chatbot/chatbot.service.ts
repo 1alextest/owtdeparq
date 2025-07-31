@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatRequestDto, ImproveSpeakerNotesDto } from './dto/chat-request.dto';
@@ -6,6 +6,10 @@ import { ChatContext } from '../entities/chat-context.entity';
 import { DecksService } from '../decks/decks.service';
 import { SlidesService } from '../slides/slides.service';
 import { AiProviderService } from '../ai/ai-provider.service';
+import {
+  isVirtualDashboardDeck,
+  validateVirtualDeckOwnership
+} from '../../../shared/constants/virtual-decks';
 
 @Injectable()
 export class ChatbotService {
@@ -18,11 +22,19 @@ export class ChatbotService {
   ) {}
 
   async chatWithAI(chatDto: ChatRequestDto, userId: string) {
-    // Verify deck ownership if deckId is provided
-    let deck = null;
-    if (chatDto.deckId) {
-      deck = await this.decksService.verifyDeckOwnership(chatDto.deckId, userId);
+    // Check if this is a virtual dashboard deck
+    if (isVirtualDashboardDeck(chatDto.deckId)) {
+      // Validate that the virtual deck belongs to the requesting user
+      if (!validateVirtualDeckOwnership(chatDto.deckId, userId)) {
+        throw new UnauthorizedException('Cannot access another user\'s dashboard conversations');
+      }
+
+      // Handle dashboard conversation
+      return this.handleDashboardConversation(chatDto, userId);
     }
+
+    // Real deck conversation - verify ownership
+    const deck = await this.decksService.verifyDeckOwnership(chatDto.deckId, userId);
 
     // Get slide context if specified
     let slideContext = null;
@@ -160,5 +172,43 @@ export class ChatbotService {
     });
 
     await this.chatRepository.save(conversation);
+  }
+
+  /**
+   * Handle dashboard conversation (virtual deck)
+   */
+  private async handleDashboardConversation(chatDto: ChatRequestDto, userId: string) {
+    // Generate AI response for general pitch deck guidance
+    const result = await this.aiProviderService.generateChatResponse(
+      chatDto.message,
+      null, // No deck context
+      null, // No slide context
+      { model: 'openai' } // Use OpenAI for better chat responses
+    );
+
+    if (!result.success) {
+      throw new Error(result.error || 'Dashboard chat generation failed');
+    }
+
+    // Save conversation with virtual deck ID
+    await this.saveConversation(chatDto, result.content, userId);
+
+    return {
+      message: result.content,
+      suggestions: this.generateDashboardSuggestions(),
+      contextUsed: chatDto.context,
+      provider: result.provider,
+    };
+  }
+
+  /**
+   * Generate suggestions for dashboard conversations
+   */
+  private generateDashboardSuggestions(): string[] {
+    return [
+      "I can help you understand the key elements of a successful pitch deck",
+      "Would you like guidance on structuring your investor presentation?",
+      "I can provide industry-specific insights for your pitch deck",
+    ];
   }
 }
