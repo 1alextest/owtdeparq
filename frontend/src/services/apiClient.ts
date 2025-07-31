@@ -208,7 +208,11 @@ class ApiClient {
   }
 
   async regenerateSlide(slideId: string, improvementType: string = 'general'): Promise<any> {
-    return this.post<any>(`/generate/slides/${slideId}/regenerate`, { improvement_type: improvementType });
+    return this.post<any>(`/generate/slides/${slideId}/regenerate`, {
+      modelChoice: 'groq', // Use Groq as default
+      userFeedback: improvementType,
+      userApiKey: undefined // Use system API key
+    });
   }
 
   // Additional slide management methods

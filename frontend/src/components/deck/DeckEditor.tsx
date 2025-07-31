@@ -4,7 +4,8 @@ import { SlideEditor } from './SlideEditor';
 import { SlidePreview } from './SlidePreview';
 import { ExportModal } from './ExportModal';
 import { apiClient } from '../../services/apiClient';
-import { ToolbarChatbotTrigger } from '../chatbot/ChatbotTrigger';
+import { FloatingChatbotTrigger } from '../chatbot/ChatbotTrigger';
+import { ChatbotPanel } from '../chatbot/ChatbotPanel';
 import { useChatbot } from '../../contexts/ChatbotContext';
 
 interface Slide {
@@ -89,6 +90,19 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({ deckId, projectId }) => 
 
   const handleSlideSelect = (slideId: string) => {
     setSelectedSlideId(slideId);
+
+    // Update chatbot context with selected slide information
+    const selectedSlide = slides.find(s => s.id === slideId);
+    if (selectedSlide && deck) {
+      updateContext({
+        type: 'slide',
+        deckId: deck.id,
+        slideId: selectedSlide.id,
+        deckTitle: deck.title,
+        slideTitle: selectedSlide.title,
+        slideType: selectedSlide.type,
+      });
+    }
   };
 
   const handleSlideUpdate = async (slideId: string, updates: Partial<Slide>) => {
@@ -300,17 +314,7 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({ deckId, projectId }) => 
                 </button>
               </div>
               
-              {/* AI Assistant Button */}
-              <ToolbarChatbotTrigger
-                context={{
-                  type: 'deck',
-                  deckId: deck?.id,
-                  deckTitle: deck?.title,
-                }}
-                label="AI Assistant"
-                showLabel={true}
-                className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors inline-flex items-center"
-              />
+              {/* AI Assistant functionality moved to floating chatbot - context-aware */}
 
               {/* Export Button */}
               <button 
@@ -410,6 +414,16 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({ deckId, projectId }) => 
           deckTitle={deck.title}
         />
       )}
+
+      {/* Floating Chatbot Trigger - Context-aware for deck editing */}
+      <FloatingChatbotTrigger
+        className="fixed bottom-6 right-6 z-50"
+        label="AI Assistant for deck editing help"
+        size="lg"
+      />
+
+      {/* Chatbot Panel */}
+      <ChatbotPanel />
     </>
   );
 };

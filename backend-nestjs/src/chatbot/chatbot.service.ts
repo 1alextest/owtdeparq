@@ -3,8 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatRequestDto, ImproveSpeakerNotesDto } from './dto/chat-request.dto';
 import { ChatContext } from '../entities/chat-context.entity';
+import { PitchDeck } from '../entities/pitch-deck.entity';
 import { DecksService } from '../decks/decks.service';
 import { SlidesService } from '../slides/slides.service';
+import { ProjectsService } from '../projects/projects.service';
 import { AiProviderService } from '../ai/ai-provider.service';
 import {
   isVirtualDashboardDeck,
@@ -16,20 +18,36 @@ export class ChatbotService {
   constructor(
     @InjectRepository(ChatContext)
     private chatRepository: Repository<ChatContext>,
+    @InjectRepository(PitchDeck)
+    private deckRepository: Repository<PitchDeck>,
     private decksService: DecksService,
     private slidesService: SlidesService,
+    private projectsService: ProjectsService,
     private aiProviderService: AiProviderService,
   ) {}
 
   async chatWithAI(chatDto: ChatRequestDto, userId: string) {
+    console.log('🔍 chatWithAI called with:', {
+      deckId: chatDto.deckId,
+      userId,
+      message: chatDto.message?.substring(0, 50) + '...'
+    });
+
     // Check if this is a virtual dashboard deck
-    if (isVirtualDashboardDeck(chatDto.deckId, userId)) {
+    const isVirtual = isVirtualDashboardDeck(chatDto.deckId, userId);
+    console.log('🔍 Virtual deck check:', { isVirtual, deckId: chatDto.deckId, userId });
+
+    if (isVirtual) {
       // Validate that the virtual deck belongs to the requesting user
-      if (!validateVirtualDeckOwnership(chatDto.deckId, userId)) {
+      const isValidOwnership = validateVirtualDeckOwnership(chatDto.deckId, userId);
+      console.log('🔍 Virtual deck ownership:', { isValidOwnership });
+
+      if (!isValidOwnership) {
         throw new UnauthorizedException('Cannot access another user\'s dashboard conversations');
       }
 
       // Handle dashboard conversation
+      console.log('🔍 Handling dashboard conversation');
       return this.handleDashboardConversation(chatDto, userId);
     }
 
@@ -150,9 +168,17 @@ export class ChatbotService {
   }
 
   private async saveConversation(chatDto: ChatRequestDto, response: string, userId: string): Promise<void> {
+    let deckIdToSave = chatDto.deckId;
+
+    // For virtual decks, ensure we have a valid deck record to reference
+    if (isVirtualDashboardDeck(chatDto.deckId, userId)) {
+      console.log('🔍 Creating/finding virtual deck record for database save');
+      deckIdToSave = await this.ensureVirtualDeckExists(chatDto.deckId, userId);
+    }
+
     const conversation = this.chatRepository.create({
       userId,
-      deckId: chatDto.deckId,
+      deckId: deckIdToSave,
       slideId: chatDto.slideId,
       conversationData: {
         messages: [
@@ -172,6 +198,62 @@ export class ChatbotService {
     });
 
     await this.chatRepository.save(conversation);
+  }
+
+  /**
+   * Ensure a virtual deck record exists in the database for foreign key constraint
+   */
+  private async ensureVirtualDeckExists(virtualDeckId: string, userId: string): Promise<string> {
+    try {
+      // Check if virtual deck already exists by querying directly
+      const existingDeck = await this.deckRepository.findOne({
+        where: { id: virtualDeckId }
+      });
+
+      if (existingDeck) {
+        return virtualDeckId;
+      }
+    } catch (error) {
+      // Deck doesn't exist, we'll create it
+    }
+
+    // Create a virtual project first
+    const virtualProject = await this.ensureVirtualProjectExists(userId);
+
+    // Create the virtual deck record directly with the specific UUID
+    const virtualDeck = this.deckRepository.create({
+      id: virtualDeckId,
+      projectId: virtualProject.id,
+      title: 'Dashboard Conversations',
+      mode: 'free',
+      generationData: {
+        type: 'virtual',
+        purpose: 'dashboard_conversations',
+        userId: userId
+      }
+    });
+
+    await this.deckRepository.save(virtualDeck);
+    return virtualDeckId;
+  }
+
+  /**
+   * Ensure a virtual project exists for virtual decks
+   */
+  private async ensureVirtualProjectExists(userId: string) {
+    // Try to find existing virtual project
+    const projects = await this.projectsService.findAllByUser(userId);
+    const virtualProject = projects.projects.find(p => p.name === 'Virtual Dashboard Project');
+
+    if (virtualProject) {
+      return virtualProject;
+    }
+
+    // Create virtual project
+    return await this.projectsService.create({
+      name: 'Virtual Dashboard Project',
+      description: 'System project for dashboard conversations'
+    }, userId);
   }
 
   /**

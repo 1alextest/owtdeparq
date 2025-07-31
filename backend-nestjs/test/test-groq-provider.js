@@ -1,4 +1,4 @@
-const { GroqProvider } = require('./dist/ai/providers/groq.provider');
+const { GroqProvider } = require('../dist/ai/providers/groq.provider');
 const { ConfigService } = require('@nestjs/config');
 require('dotenv').config();
 

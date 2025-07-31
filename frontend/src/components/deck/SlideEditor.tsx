@@ -258,20 +258,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
           </div>
           
           <div className="flex items-center space-x-2">
-            {/* Get AI Help Button */}
-            <InlineChatbotTrigger
-              context={{
-                type: 'slide',
-                deckId: slide.pitch_deck_id,
-                slideId: slide.id,
-                slideTitle: slide.title,
-                slideType: slide.type,
-              }}
-              label="Get AI Help"
-              showLabel={true}
-              size="sm"
-              className="px-3 py-2 text-sm font-medium text-purple-700 bg-purple-100 rounded-md hover:bg-purple-200 transition-colors inline-flex items-center"
-            />
+            {/* AI Help functionality moved to floating chatbot - context-aware */}
 
             {/* Regenerate Button */}
             <div className="relative">
