@@ -5,6 +5,7 @@ import { CreateSlideDto } from './dto/create-slide.dto';
 import { UpdateSlideDto } from './dto/update-slide.dto';
 import { Slide } from '../entities/slide.entity';
 import { DecksService } from '../decks/decks.service';
+import { ProjectsService } from '../projects/projects.service';
 
 @Injectable()
 export class SlidesService {
@@ -12,6 +13,7 @@ export class SlidesService {
     @InjectRepository(Slide)
     private slideRepository: Repository<Slide>,
     private decksService: DecksService,
+    private projectsService: ProjectsService,
   ) {}
 
   async create(createSlideDto: CreateSlideDto, userId: string): Promise<Slide> {
@@ -19,7 +21,13 @@ export class SlidesService {
     await this.decksService.verifyDeckOwnership(createSlideDto.deckId, userId);
 
     const slide = this.slideRepository.create(createSlideDto);
-    return await this.slideRepository.save(slide);
+    const savedSlide = await this.slideRepository.save(slide);
+
+    // Update project's updated_at timestamp to reflect activity
+    const deck = await this.decksService.findOne(createSlideDto.deckId, userId);
+    await this.projectsService.touchProject(deck.projectId);
+
+    return savedSlide;
   }
 
   async findOne(id: string, userId: string): Promise<Slide> {
@@ -42,7 +50,13 @@ export class SlidesService {
     const slide = await this.findOne(id, userId);
 
     Object.assign(slide, updateSlideDto);
-    return await this.slideRepository.save(slide);
+    const updatedSlide = await this.slideRepository.save(slide);
+
+    // Update project's updated_at timestamp to reflect activity
+    const deck = await this.decksService.findOne(slide.deckId, userId);
+    await this.projectsService.touchProject(deck.projectId);
+
+    return updatedSlide;
   }
 
   async autosave(id: string, updateSlideDto: UpdateSlideDto, userId: string): Promise<{ timestamp: string }> {

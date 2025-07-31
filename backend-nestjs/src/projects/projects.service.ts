@@ -5,6 +5,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 
 import { Project } from '../entities/project.entity';
+import { Presentation } from '../entities/presentation.entity';
 import { PitchDeck } from '../entities/pitch-deck.entity';
 
 @Injectable()
@@ -12,6 +13,8 @@ export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
+    @InjectRepository(Presentation)
+    private presentationRepository: Repository<Presentation>,
     @InjectRepository(PitchDeck)
     private deckRepository: Repository<PitchDeck>,
   ) {}
@@ -40,25 +43,27 @@ export class ProjectsService {
       skip: offset,
     });
 
-    // If projects exist, get deck counts separately to avoid N+1 query
+    // If projects exist, get presentation counts separately to avoid N+1 query
     if (projects.length > 0) {
       const projectIds = projects.map(p => p.id);
-      const deckCounts = await this.deckRepository
-        .createQueryBuilder('deck')
-        .select('deck.projectId', 'projectId')
-        .addSelect('COUNT(deck.id)', 'count')
-        .where('deck.projectId IN (:...projectIds)', { projectIds })
-        .groupBy('deck.projectId')
+      const presentationCounts = await this.presentationRepository
+        .createQueryBuilder('presentation')
+        .select('presentation.projectId', 'projectId')
+        .addSelect('COUNT(presentation.id)', 'count')
+        .where('presentation.projectId IN (:...projectIds)', { projectIds })
+        .groupBy('presentation.projectId')
         .getRawMany();
 
-      // Map deck counts to projects
-      const deckCountMap = new Map(
-        deckCounts.map(dc => [dc.projectId, parseInt(dc.count)])
+      // Map presentation counts to projects
+      const presentationCountMap = new Map(
+        presentationCounts.map(pc => [pc.projectId, parseInt(pc.count)])
       );
 
-      // Add deck count to each project without loading full relations
+      // Add presentation count to each project without loading full relations
       projects.forEach(project => {
-        (project as any).deck_count = deckCountMap.get(project.id) || 0;
+        (project as any).presentation_count = presentationCountMap.get(project.id) || 0;
+        // Keep deck_count for backward compatibility, but it should be deprecated
+        (project as any).deck_count = (project as any).presentation_count;
       });
     }
 
@@ -123,6 +128,13 @@ export class ProjectsService {
 
     return project;
   }
-  
 
+  /**
+   * Update project's updated_at timestamp to reflect activity
+   */
+  async touchProject(projectId: string): Promise<void> {
+    await this.projectRepository.update(projectId, {
+      updatedAt: new Date(),
+    });
+  }
 }

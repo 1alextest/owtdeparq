@@ -20,7 +20,12 @@ export class DecksService {
     await this.projectsService.verifyProjectOwnership(createDeckDto.projectId, userId);
 
     const deck = this.deckRepository.create(createDeckDto);
-    return await this.deckRepository.save(deck);
+    const savedDeck = await this.deckRepository.save(deck);
+
+    // Update project's updated_at timestamp to reflect activity
+    await this.projectsService.touchProject(createDeckDto.projectId);
+
+    return savedDeck;
   }
 
   async findOne(id: string, userId: string): Promise<PitchDeck> {
@@ -48,7 +53,12 @@ export class DecksService {
     const deck = await this.findOne(id, userId);
 
     Object.assign(deck, updateDeckDto);
-    return await this.deckRepository.save(deck);
+    const updatedDeck = await this.deckRepository.save(deck);
+
+    // Update project's updated_at timestamp to reflect activity
+    await this.projectsService.touchProject(deck.projectId);
+
+    return updatedDeck;
   }
 
   async remove(id: string, userId: string): Promise<void> {

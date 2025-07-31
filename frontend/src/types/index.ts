@@ -95,12 +95,26 @@ export const ProjectSchema = z.object({
   user_id: z.string(),
   name: z.string().min(1, 'Project name is required').max(100, 'Project name too long'),
   description: z.string().optional(),
-  deck_count: z.number().int().min(0).default(0),
+  deck_count: z.number().int().min(0).default(0), // Legacy - use presentation_count
+  presentation_count: z.number().int().min(0).default(0),
   created_at: z.string().datetime().optional(),
   updated_at: z.string().datetime().optional()
 });
 
 export type Project = z.infer<typeof ProjectSchema>;
+
+// Presentation Schema
+export const PresentationSchema = z.object({
+  id: z.string(),
+  project_id: z.string(),
+  name: z.string().min(1, 'Presentation name is required').max(100, 'Presentation name too long'),
+  description: z.string().optional(),
+  deck_count: z.number().int().min(0).default(0),
+  created_at: z.string().datetime().optional(),
+  updated_at: z.string().datetime().optional()
+});
+
+export type Presentation = z.infer<typeof PresentationSchema>;
 
 // Chatbot Types
 export const ChatMessageRoleSchema = z.enum(['user', 'assistant']);

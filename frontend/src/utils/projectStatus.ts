@@ -15,8 +15,8 @@ export type ProjectActivity =
 export interface ProjectStatusInfo {
   status: ProjectStatus;
   activity: ProjectActivity;
-  deckCount: number;
-  deckCountText: string;
+  presentationCount: number;
+  presentationCountText: string;
   statusColor: string;
   activityText: string;
   createdDate: Date | null;
@@ -34,12 +34,12 @@ export interface ProjectAction {
 }
 
 /**
- * Calculate project status based on deck count and activity
+ * Calculate project status based on presentation count and activity
  */
 export function getProjectStatus(project: Project): ProjectStatus {
-  const deckCount = project.deck_count || 0;
+  const presentationCount = project.presentation_count || project.deck_count || 0;
 
-  if (deckCount === 0) {
+  if (presentationCount === 0) {
     return 'empty';
   }
 
@@ -83,17 +83,19 @@ export function getProjectActivity(project: Project): ProjectActivity {
 
 /**
  * Get the most recent activity date
+ * Note: Currently only uses project timestamps. In the future, this should
+ * include deck and slide timestamps for more accurate activity tracking.
  */
 export function getLastActivityDate(project: Project): Date | null {
   const dates = [
     project.created_at,
     project.updated_at,
   ].filter(Boolean).map(date => new Date(date!));
-  
+
   if (dates.length === 0) {
     return null;
   }
-  
+
   return new Date(Math.max(...dates.map(d => d.getTime())));
 }
 
@@ -103,19 +105,19 @@ export function getLastActivityDate(project: Project): Date | null {
 export function getProjectStatusInfo(project: Project): ProjectStatusInfo {
   const status = getProjectStatus(project);
   const activity = getProjectActivity(project);
-  const deckCount = project.deck_count || 0;
+  const presentationCount = project.presentation_count || project.deck_count || 0;
   const createdDate = project.created_at ? new Date(project.created_at) : null;
   const lastActivityDate = getLastActivityDate(project);
 
-  // Deck count text
-  const deckCountText = deckCount === 0
-    ? 'No decks'
-    : deckCount === 1
-      ? '1 deck'
-      : `${deckCount} decks`;
+  // Presentation count text
+  const presentationCountText = presentationCount === 0
+    ? 'No presentations'
+    : presentationCount === 1
+      ? '1 presentation'
+      : `${presentationCount} presentations`;
 
-  // Status colors based on deck count and activity
-  const statusColor = deckCount === 0
+  // Status colors based on presentation count and activity
+  const statusColor = presentationCount === 0
     ? 'bg-gray-100 text-gray-600 border-gray-200'  // Empty project
     : activity === 'recent'
       ? 'bg-green-100 text-green-800 border-green-200'  // Recently active
@@ -123,13 +125,10 @@ export function getProjectStatusInfo(project: Project): ProjectStatusInfo {
         ? 'bg-blue-100 text-blue-800 border-blue-200'  // Active this week
         : 'bg-gray-100 text-gray-700 border-gray-200';  // Stable/older
 
-  // Activity text
-  const activityConfig = {
-    recent: 'Active today',
-    this_week: 'Active this week',
-    this_month: 'Active this month',
-    older: 'Stable',
-  };
+  // Use actual relative time instead of generic categories
+  const activityText = lastActivityDate
+    ? `Last updated ${formatRelativeTime(lastActivityDate)}`
+    : 'No recent activity';
 
   // Suggested actions based on status
   const suggestedActions = getSuggestedActions(project, status, activity);
@@ -137,10 +136,10 @@ export function getProjectStatusInfo(project: Project): ProjectStatusInfo {
   return {
     status,
     activity,
-    deckCount,
-    deckCountText,
+    presentationCount,
+    presentationCountText,
     statusColor,
-    activityText: activityConfig[activity],
+    activityText,
     createdDate,
     lastActivityDate,
     suggestedActions,
@@ -156,13 +155,13 @@ function getSuggestedActions(
   activity: ProjectActivity
 ): ProjectAction[] {
   const actions: ProjectAction[] = [];
-  const deckCount = project.deck_count || 0;
+  const presentationCount = project.presentation_count || project.deck_count || 0;
 
-  // Primary action - always "Add Deck" since projects can have multiple decks
+  // Primary action - always "Add Presentation" since projects can have multiple presentations
   actions.push({
     id: 'generate',
-    label: deckCount === 0 ? 'Create First Deck' : 'Add Deck',
-    icon: deckCount === 0 ? 'lightning' : 'plus',
+    label: presentationCount === 0 ? 'Create First Presentation' : 'Add Presentation',
+    icon: presentationCount === 0 ? 'lightning' : 'plus',
     color: 'bg-green-600 hover:bg-green-700 text-white',
     action: 'generate',
     priority: 'primary',
@@ -178,8 +177,8 @@ function getSuggestedActions(
     priority: 'secondary',
   });
 
-  // Tertiary actions - only show if project has decks
-  if (deckCount > 0) {
+  // Tertiary actions - only show if project has presentations
+  if (presentationCount > 0) {
     actions.push({
       id: 'duplicate',
       label: 'Duplicate',

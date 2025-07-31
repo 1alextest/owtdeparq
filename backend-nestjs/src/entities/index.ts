@@ -1,5 +1,6 @@
 // Export all entities for easy importing
 export { Project } from './project.entity';
+export { Presentation } from './presentation.entity';
 export { PitchDeck } from './pitch-deck.entity';
 export { Slide } from './slide.entity';
 export { SlideTemplate } from './slide-template.entity';

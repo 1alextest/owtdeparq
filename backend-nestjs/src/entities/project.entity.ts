@@ -10,6 +10,7 @@ import {
 import { IsString, IsNotEmpty, IsUUID, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { PitchDeck } from './pitch-deck.entity';
+import { Presentation } from './presentation.entity';
 import { ContextMemoryEvent } from './context-memory-event.entity';
 import { LearningPattern } from './learning-pattern.entity';
 
@@ -51,8 +52,12 @@ export class Project {
   updatedAt: Date;
 
   // Relationships
+  @OneToMany(() => Presentation, (presentation) => presentation.project, { cascade: true })
+  @ApiProperty({ type: () => [Presentation], description: 'Presentations in this project' })
+  presentations: Presentation[];
+
   @OneToMany(() => PitchDeck, (deck) => deck.project, { cascade: true })
-  @ApiProperty({ type: () => [PitchDeck], description: 'Pitch decks in this project' })
+  @ApiProperty({ type: () => [PitchDeck], description: 'Pitch decks in this project (legacy - use presentations)' })
   decks: PitchDeck[];
 
   @OneToMany(() => ContextMemoryEvent, (event) => event.project, { cascade: true })

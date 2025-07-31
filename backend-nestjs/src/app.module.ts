@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 // Import all feature modules
 import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
+import { PresentationsModule } from './presentations/presentations.module';
 import { DecksModule } from './decks/decks.module';
 import { SlidesModule } from './slides/slides.module';
 import { GenerationModule } from './generation/generation.module';
@@ -22,6 +23,7 @@ import { HealthModule } from './health/health.module';
 
 // Import all entities
 import { Project } from './entities/project.entity';
+import { Presentation } from './entities/presentation.entity';
 import { PitchDeck } from './entities/pitch-deck.entity';
 import { Slide } from './entities/slide.entity';
 import { SlideTemplate } from './entities/slide-template.entity';
@@ -63,6 +65,7 @@ import { LearningPattern } from './entities/learning-pattern.entity';
           url: databaseUrl,
           entities: [
             Project,
+            Presentation,
             PitchDeck,
             Slide,
             SlideTemplate,
@@ -100,6 +103,7 @@ import { LearningPattern } from './entities/learning-pattern.entity';
     SupabaseModule,
     AuthModule,
     ProjectsModule,
+    PresentationsModule,
     DecksModule,
     SlidesModule,
     GenerationModule,

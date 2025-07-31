@@ -13,6 +13,7 @@ import {
 import { IsString, IsNotEmpty, IsUUID, IsIn, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Project } from './project.entity';
+import { Presentation } from './presentation.entity';
 import { Slide } from './slide.entity';
 import { DeckVersion } from './deck-version.entity';
 import { ContextMemoryEvent } from './context-memory-event.entity';
@@ -33,6 +34,12 @@ export class PitchDeck {
   @IsNotEmpty()
   @ApiProperty({ description: 'ID of the project this deck belongs to' })
   projectId: string;
+
+  @Column({ name: 'presentation_id', type: 'uuid', nullable: true })
+  @IsUUID()
+  @IsOptional()
+  @ApiProperty({ description: 'ID of the presentation this deck belongs to', required: false })
+  presentationId?: string;
 
   @Column({ type: 'text' })
   @IsString()
@@ -63,6 +70,11 @@ export class PitchDeck {
   @JoinColumn({ name: 'project_id' })
   @ApiProperty({ type: () => Project, description: 'Project this deck belongs to' })
   project: Project;
+
+  @ManyToOne(() => Presentation, (presentation) => presentation.decks, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'presentation_id' })
+  @ApiProperty({ type: () => Presentation, description: 'Presentation this deck belongs to', required: false })
+  presentation?: Presentation;
 
   @OneToMany(() => Slide, (slide) => slide.deck, { cascade: true })
   @ApiProperty({ type: () => [Slide], description: 'Slides in this deck' })
