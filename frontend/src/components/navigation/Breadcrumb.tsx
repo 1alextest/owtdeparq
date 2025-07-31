@@ -71,7 +71,7 @@ export const generateBreadcrumbs = (currentRoute: string, projectName?: string, 
   }
 
   // Project detail page
-  if (currentRoute.match(/^\/projects\/[^\/]+$/) && !currentRoute.includes('/generate') && !currentRoute.includes('/decks/')) {
+  if (currentRoute.match(/^\/projects\/[^/]+$/) && !currentRoute.includes('/generate') && !currentRoute.includes('/decks/')) {
     breadcrumbs.push({
       label: projectName || 'Project Details',
       isActive: true

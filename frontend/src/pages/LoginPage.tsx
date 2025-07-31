@@ -30,7 +30,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister }) => {
             Owtdeparq
           </h1>
           <p className="text-gray-600">
-            Create professional pitch decks with AI assistance
+            Create professional presentations with AI assistance
           </p>
         </div>
       </div>

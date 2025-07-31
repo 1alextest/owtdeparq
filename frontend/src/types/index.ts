@@ -101,3 +101,85 @@ export const ProjectSchema = z.object({
 });
 
 export type Project = z.infer<typeof ProjectSchema>;
+
+// Chatbot Types
+export const ChatMessageRoleSchema = z.enum(['user', 'assistant']);
+export type ChatMessageRole = z.infer<typeof ChatMessageRoleSchema>;
+
+export const ChatMessageSchema = z.object({
+  id: z.string(),
+  role: ChatMessageRoleSchema,
+  content: z.string(),
+  timestamp: z.date(),
+  suggestions: z.array(z.string()).optional(),
+  actions: z.array(z.any()).optional(), // MessageAction type will be defined separately
+});
+
+export type ChatMessage = z.infer<typeof ChatMessageSchema>;
+
+export const ChatContextSchema = z.object({
+  type: z.enum(['dashboard', 'deck', 'slide']),
+  deckId: z.string().optional(),
+  slideId: z.string().optional(),
+  deckTitle: z.string().optional(),
+  slideTitle: z.string().optional(),
+  slideType: z.string().optional(),
+});
+
+export type ChatContext = z.infer<typeof ChatContextSchema>;
+
+export const MessageActionSchema = z.object({
+  id: z.string(),
+  type: z.enum(['apply_text', 'improve_notes', 'regenerate_slide', 'navigate']),
+  label: z.string(),
+  data: z.any(),
+});
+
+export type MessageAction = z.infer<typeof MessageActionSchema>;
+
+export const QuickActionSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  icon: z.string(),
+  prompt: z.string(),
+  context: z.array(z.string()),
+});
+
+export type QuickAction = z.infer<typeof QuickActionSchema>;
+
+// Chatbot API Request/Response Types
+export const ChatRequestSchema = z.object({
+  message: z.string().min(1, 'Message cannot be empty').max(2000, 'Message too long'),
+  deckId: z.string().uuid('Invalid deck ID'),
+  slideId: z.string().uuid('Invalid slide ID').optional(),
+  context: z.any().optional(),
+});
+
+export type ChatRequest = z.infer<typeof ChatRequestSchema>;
+
+export const ChatResponseSchema = z.object({
+  message: z.string(),
+  suggestions: z.array(z.string()).optional(),
+  contextUsed: z.any().optional(),
+  provider: z.string().optional(),
+});
+
+export type ChatResponse = z.infer<typeof ChatResponseSchema>;
+
+export const ImproveSpeakerNotesRequestSchema = z.object({
+  slideId: z.string().uuid('Invalid slide ID'),
+  currentNotes: z.string().min(1, 'Current notes cannot be empty'),
+  improvementType: z.enum(['clarity', 'engagement', 'structure', 'detail']),
+});
+
+export type ImproveSpeakerNotesRequest = z.infer<typeof ImproveSpeakerNotesRequestSchema>;
+
+export const ImproveSpeakerNotesResponseSchema = z.object({
+  improvedNotes: z.string(),
+  originalNotes: z.string(),
+  improvementType: z.string(),
+  slideTitle: z.string(),
+  provider: z.string().optional(),
+});
+
+export type ImproveSpeakerNotesResponse = z.infer<typeof ImproveSpeakerNotesResponseSchema>;

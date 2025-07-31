@@ -24,8 +24,8 @@ export const AppDataSource = new DataSource({
   
   // Entity paths for migrations
   entities: [
-    'src/database/entities/*.entity.ts',
-    'dist/database/entities/*.entity.js'
+    'src/entities/*.entity.ts',
+    'dist/entities/*.entity.js'
   ],
   
   // Migration configuration

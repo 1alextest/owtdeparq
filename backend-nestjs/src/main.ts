@@ -29,8 +29,8 @@ async function bootstrap() {
 
   // Swagger documentation setup
   const config = new DocumentBuilder()
-    .setTitle('AI Pitch Deck Generator API')
-    .setDescription('Backend API for AI-powered pitch deck generation')
+    .setTitle('Owtdeparq API')
+    .setDescription('Backend API for Owtdeparq - AI-powered pitch deck generation')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

@@ -21,7 +21,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onCreateProject, onQuick
       </div>
       
       <h2 className="text-2xl font-bold text-gray-900 mb-3">
-        Ready to create your first pitch deck?
+        Ready to create your first presentation?
       </h2>
       
       <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">

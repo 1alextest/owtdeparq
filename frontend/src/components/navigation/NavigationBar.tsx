@@ -15,20 +15,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ currentRoute }) =>
     await logout();
   };
 
-  const isActive = (route: string) => {
-    if (route === '/dashboard') {
-      return currentRoute === '/dashboard';
-    }
-    return currentRoute.startsWith(route);
-  };
 
-  const getPageTitle = () => {
-    if (currentRoute === '/dashboard') return 'Projects';
-    if (currentRoute.includes('/generate')) return 'Generate Deck';
-    if (currentRoute.includes('/decks/')) return 'Deck Editor';
-    if (currentRoute.includes('/projects/')) return 'Project Details';
-    return 'Dashboard';
-  };
 
   return (
     <nav className="bg-white border-b border-gray-200">
@@ -45,33 +32,14 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ currentRoute }) =>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <span className="hidden sm:block">PitchDeck AI</span>
+              <span className="hidden sm:block">Owtdeparq</span>
             </button>
             
-            {/* Current Page Indicator */}
-            <div className="hidden md:flex items-center">
-              <svg className="w-4 h-4 text-gray-400 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-              <span className="text-sm font-medium text-gray-700">{getPageTitle()}</span>
-            </div>
+
           </div>
 
           {/* User Menu */}
           <div className="flex items-center space-x-3">
-            {/* Quick Actions */}
-            {currentRoute === '/dashboard' && (
-              <button
-                onClick={() => {/* Quick start action */}}
-                className="hidden sm:inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 rounded-full hover:bg-green-200 transition-colors"
-              >
-                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Quick Start
-              </button>
-            )}
-
             {/* User Avatar and Menu */}
             <div className="relative">
               <button

@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { apiClient } from '../../services/apiClient';
 import { SlideRegenerationModal } from './SlideRegenerationModal';
+import { InlineChatbotTrigger } from '../chatbot/ChatbotTrigger';
+import { SpeakerNotesImprover } from '../chatbot/SpeakerNotesImprover';
+import { useChatbot } from '../../contexts/ChatbotContext';
 
 interface Slide {
   id: string;
@@ -43,6 +46,18 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
   } | null>(null);
   const [regenerationLoading, setRegenerationLoading] = useState(false);
   const [regenerationError, setRegenerationError] = useState<string | null>(null);
+  
+  // AI help integration state
+  const [showSpeakerNotesImprover, setShowSpeakerNotesImprover] = useState(false);
+  const [selectedText, setSelectedText] = useState('');
+  const [selectionContext, setSelectionContext] = useState<'title' | 'content' | null>(null);
+  
+  // Refs for text selection detection
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Chatbot integration
+  const { updateContext } = useChatbot();
 
   // Update local state when slide prop changes
   useEffect(() => {
@@ -50,7 +65,17 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     setContent(slide.content);
     setSpeakerNotes((slide as any).speakerNotes || (slide as any).speaker_notes || ''); // Load existing speaker notes
     setHasUnsavedChanges(false);
-  }, [slide]);
+    
+    // Update chatbot context with slide information
+    updateContext({
+      type: 'slide',
+      deckId: slide.pitch_deck_id,
+      slideId: slide.id,
+      deckTitle: undefined, // Will be set by parent DeckEditor
+      slideTitle: slide.title,
+      slideType: slide.type,
+    });
+  }, [slide, updateContext]);
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle);
@@ -148,6 +173,36 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     setRegenerationLoading(false);
   };
 
+  // Text selection detection handlers
+  const handleTextSelection = (context: 'title' | 'content') => {
+    const element = context === 'title' ? titleInputRef.current : contentTextareaRef.current;
+    if (!element) return;
+
+    const selection = element.value.substring(element.selectionStart || 0, element.selectionEnd || 0);
+    if (selection.trim().length > 0) {
+      setSelectedText(selection.trim());
+      setSelectionContext(context);
+    } else {
+      setSelectedText('');
+      setSelectionContext(null);
+    }
+  };
+
+  // Speaker notes improvement handlers
+  const handleSpeakerNotesImprove = () => {
+    setShowSpeakerNotesImprover(true);
+  };
+
+  const handleSpeakerNotesApply = (improvedNotes: string) => {
+    setSpeakerNotes(improvedNotes);
+    setHasUnsavedChanges(true);
+    setShowSpeakerNotesImprover(false);
+  };
+
+  const handleSpeakerNotesCancel = () => {
+    setShowSpeakerNotesImprover(false);
+  };
+
   const getSlideTypeName = (type: string) => {
     const names: Record<string, string> = {
       cover: 'Cover Slide',
@@ -203,6 +258,21 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
           </div>
           
           <div className="flex items-center space-x-2">
+            {/* Get AI Help Button */}
+            <InlineChatbotTrigger
+              context={{
+                type: 'slide',
+                deckId: slide.pitch_deck_id,
+                slideId: slide.id,
+                slideTitle: slide.title,
+                slideType: slide.type,
+              }}
+              label="Get AI Help"
+              showLabel={true}
+              size="sm"
+              className="px-3 py-2 text-sm font-medium text-purple-700 bg-purple-100 rounded-md hover:bg-purple-200 transition-colors inline-flex items-center"
+            />
+
             {/* Regenerate Button */}
             <div className="relative">
               <button
@@ -286,13 +356,40 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
             </label>
             <input
               id="slide-title"
+              ref={titleInputRef}
               type="text"
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
+              onSelect={() => handleTextSelection('title')}
+              onMouseUp={() => handleTextSelection('title')}
+              onKeyUp={() => handleTextSelection('title')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter slide title..."
               disabled={loading}
             />
+            {/* Contextual help for selected text */}
+            {selectedText && selectionContext === 'title' && (
+              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-blue-800">
+                    Selected: "{selectedText.length > 30 ? selectedText.substring(0, 30) + '...' : selectedText}"
+                  </span>
+                  <InlineChatbotTrigger
+                    context={{
+                      type: 'slide',
+                      deckId: slide.pitch_deck_id,
+                      slideId: slide.id,
+                      slideTitle: slide.title,
+                      slideType: slide.type,
+                    }}
+                    label="Improve Selection"
+                    showLabel={true}
+                    size="sm"
+                    className="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200 transition-colors"
+                  />
+                </div>
+              </div>
+            )}
             <p className="mt-1 text-sm text-gray-500">
               {title.length}/100 characters
             </p>
@@ -305,13 +402,40 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
             </label>
             <textarea
               id="slide-content"
+              ref={contentTextareaRef}
               value={content}
               onChange={(e) => handleContentChange(e.target.value)}
+              onSelect={() => handleTextSelection('content')}
+              onMouseUp={() => handleTextSelection('content')}
+              onKeyUp={() => handleTextSelection('content')}
               rows={12}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
               placeholder="Enter slide content... Use bullet points (•) for lists."
               disabled={loading}
             />
+            {/* Contextual help for selected text */}
+            {selectedText && selectionContext === 'content' && (
+              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-blue-800">
+                    Selected: "{selectedText.length > 30 ? selectedText.substring(0, 30) + '...' : selectedText}"
+                  </span>
+                  <InlineChatbotTrigger
+                    context={{
+                      type: 'slide',
+                      deckId: slide.pitch_deck_id,
+                      slideId: slide.id,
+                      slideTitle: slide.title,
+                      slideType: slide.type,
+                    }}
+                    label="Improve Selection"
+                    showLabel={true}
+                    size="sm"
+                    className="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200 transition-colors"
+                  />
+                </div>
+              </div>
+            )}
             <p className="mt-1 text-sm text-gray-500">
               {content.length}/2000 characters
             </p>
@@ -319,9 +443,22 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
 
           {/* Speaker Notes Editor */}
           <div>
-            <label htmlFor="speaker-notes" className="block text-sm font-medium text-gray-700 mb-2">
-              Speaker Notes
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="speaker-notes" className="block text-sm font-medium text-gray-700">
+                Speaker Notes
+              </label>
+              {speakerNotes.trim() && (
+                <button
+                  onClick={handleSpeakerNotesImprove}
+                  className="px-3 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-md hover:bg-purple-200 transition-colors inline-flex items-center"
+                >
+                  <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Improve with AI
+                </button>
+              )}
+            </div>
             <textarea
               id="speaker-notes"
               value={speakerNotes}
@@ -366,6 +503,20 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
         loading={regenerationLoading}
         error={regenerationError}
       />
+
+      {/* Speaker Notes Improver Modal */}
+      {showSpeakerNotesImprover && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <SpeakerNotesImprover
+              slideId={slide.id}
+              currentNotes={speakerNotes}
+              onApply={handleSpeakerNotesApply}
+              onCancel={handleSpeakerNotesCancel}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

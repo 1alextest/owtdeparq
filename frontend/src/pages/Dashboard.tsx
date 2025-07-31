@@ -248,7 +248,7 @@ export const Dashboard: React.FC = () => {
               <p className="text-sm text-gray-500">
                 {Array.isArray(projects) && projects.length > 0 
                   ? `${projects.length} project${projects.length !== 1 ? 's' : ''}`
-                  : 'Create your first pitch deck project'
+                  : 'Create your first presentation project'
                 }
               </p>
             </div>

@@ -1,5 +1,11 @@
 import { auth } from '../config/firebase';
-import { Project } from '../types';
+import { 
+  Project, 
+  ChatRequest, 
+  ChatResponse, 
+  ImproveSpeakerNotesRequest, 
+  ImproveSpeakerNotesResponse 
+} from '../types';
 
 // Type definitions for API requests
 interface CreateProjectDto {
@@ -238,6 +244,15 @@ class ApiClient {
 
   async exportDeckToPptx(deckId: string, options: any = {}): Promise<{ message: string; downloadUrl: string }> {
     return this.post<{ message: string; downloadUrl: string }>(`/decks/${deckId}/export/pptx`, options);
+  }
+
+  // Chatbot methods
+  async sendChatMessage(request: ChatRequest): Promise<ChatResponse> {
+    return this.post<ChatResponse>('/chatbot/chat', request);
+  }
+
+  async improveSpeakerNotes(request: ImproveSpeakerNotesRequest): Promise<ImproveSpeakerNotesResponse> {
+    return this.post<ImproveSpeakerNotesResponse>('/chatbot/improve-speaker-notes', request);
   }
 
   // Health check

@@ -12,6 +12,8 @@ import { EmptyState } from '../components/projects/EmptyState';
 import { WelcomeFlow } from '../components/onboarding/WelcomeFlow';
 import { useLazyLoading, useIntersectionObserver } from '../hooks/useLazyLoading';
 import { apiClient } from '../services/apiClient';
+import { FloatingChatbotTrigger } from '../components/chatbot/ChatbotTrigger';
+import { useChatbot } from '../contexts/ChatbotContext';
 
 export const EnhancedDashboard: React.FC = () => {
   const { user, logout, loading: authLoading } = useAuth();
@@ -40,6 +42,9 @@ export const EnhancedDashboard: React.FC = () => {
   // View preferences
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showArchived, setShowArchived] = useState(false);
+  
+  // Chatbot integration
+  const { updateContext } = useChatbot();
   
   // Lazy loading for performance
   const {
@@ -118,6 +123,20 @@ export const EnhancedDashboard: React.FC = () => {
       setShowWelcomeFlow(true);
     }
   }, [user, authLoading]);
+
+  // Initialize chatbot context for dashboard
+  useEffect(() => {
+    if (user && !authLoading) {
+      updateContext({
+        type: 'dashboard',
+        deckId: undefined,
+        slideId: undefined,
+        deckTitle: undefined,
+        slideTitle: undefined,
+        slideType: undefined,
+      });
+    }
+  }, [user, authLoading, updateContext]);
 
   // Handle filter changes
   const handleFilterChange = useCallback((filtered: Project[], filters: FilterOptions) => {
@@ -528,6 +547,13 @@ export const EnhancedDashboard: React.FC = () => {
         onSubmit={handleUpdateProject}
         project={selectedProject}
         loading={editLoading}
+      />
+
+      {/* Floating Chatbot Trigger */}
+      <FloatingChatbotTrigger
+        className="fixed bottom-6 right-6 z-50"
+        label="AI Assistant for pitch deck help"
+        size="lg"
       />
     </>
   );

@@ -7,7 +7,7 @@ import {
   OneToMany,
   Index,
 } from 'typeorm';
-import { IsString, IsNotEmpty, IsUUID } from 'class-validator';
+import { IsString, IsNotEmpty, IsUUID, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { PitchDeck } from './pitch-deck.entity';
 import { ContextMemoryEvent } from './context-memory-event.entity';
@@ -34,8 +34,13 @@ export class Project {
 
   @Column({ type: 'text', nullable: true })
   @IsString()
+  @IsOptional()
   @ApiProperty({ description: 'Description of the project', required: false })
   description?: string;
+
+  @Column({ name: 'description_updated_at', type: 'timestamp with time zone', nullable: true })
+  @ApiProperty({ description: 'Last description update timestamp', required: false })
+  descriptionUpdatedAt?: Date;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   @ApiProperty({ description: 'Project creation timestamp' })

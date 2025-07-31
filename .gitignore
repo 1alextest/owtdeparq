@@ -97,7 +97,12 @@ service-account-*.json
 # Test and debug files
 test-firebase.js
 debug-*.js
+debug-*.ts
 *.test.local.js
+**/debug/
+**/demo/
+main-test.ts
+app-test.module.ts
 
 # Package manager lock files (optional - keep if you want consistent installs)
 # package-lock.json

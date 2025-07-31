@@ -4,6 +4,8 @@ import { SlideEditor } from './SlideEditor';
 import { SlidePreview } from './SlidePreview';
 import { ExportModal } from './ExportModal';
 import { apiClient } from '../../services/apiClient';
+import { ToolbarChatbotTrigger } from '../chatbot/ChatbotTrigger';
+import { useChatbot } from '../../contexts/ChatbotContext';
 
 interface Slide {
   id: string;
@@ -41,6 +43,9 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({ deckId, projectId }) => 
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
   const [showExportModal, setShowExportModal] = useState(false);
 
+  // Chatbot integration
+  const { updateContext } = useChatbot();
+
   const loadDeckData = useCallback(async () => {
     try {
       setLoading(true);
@@ -60,12 +65,22 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({ deckId, projectId }) => 
       if (sortedSlides.length > 0 && !selectedSlideId) {
         setSelectedSlideId(sortedSlides[0].id);
       }
+
+      // Update chatbot context with deck information
+      updateContext({
+        type: 'deck',
+        deckId: deck.id,
+        slideId: undefined,
+        deckTitle: deck.title,
+        slideTitle: undefined,
+        slideType: undefined,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load deck');
     } finally {
       setLoading(false);
     }
-  }, [deckId]);
+  }, [deckId, updateContext]);
 
   // Load deck and slides on component mount
   useEffect(() => {
@@ -285,6 +300,18 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({ deckId, projectId }) => 
                 </button>
               </div>
               
+              {/* AI Assistant Button */}
+              <ToolbarChatbotTrigger
+                context={{
+                  type: 'deck',
+                  deckId: deck?.id,
+                  deckTitle: deck?.title,
+                }}
+                label="AI Assistant"
+                showLabel={true}
+                className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors inline-flex items-center"
+              />
+
               {/* Export Button */}
               <button 
                 onClick={() => setShowExportModal(true)}

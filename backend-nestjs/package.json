@@ -1,8 +1,8 @@
 {
-  "name": "ai-pitch-deck-backend-nestjs",
+  "name": "owtdeparq-backend-nestjs",
   "version": "0.0.1",
-  "description": "AI Pitch Deck Generator Backend - NestJS API",
-  "author": "AI Pitch Deck Generator Team",
+  "description": "Owtdeparq Backend - NestJS API for AI-powered pitch deck generation",
+  "author": "Owtdeparq Team",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -99,9 +99,27 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.d.ts",
+      "!**/node_modules/**",
+      "!**/dist/**",
+      "!**/*.interface.ts",
+      "!**/main.ts",
+      "!**/database/migrations/**"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+    "coverageReporters": ["text", "lcov", "html"],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "testTimeout": 30000,
+    "maxWorkers": "50%"
   }
 }

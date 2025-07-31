@@ -32,7 +32,7 @@ export const GenerationPage: React.FC<GenerationPageProps> = ({ projectId }) => 
       // Navigate to the generated deck
       navigate(`/projects/${projectId}/decks/${response.deck_id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate pitch deck');
+      setError(err instanceof Error ? err.message : 'Failed to generate presentation');
     } finally {
       setIsGenerating(false);
     }
@@ -53,7 +53,7 @@ export const GenerationPage: React.FC<GenerationPageProps> = ({ projectId }) => 
       // Navigate to the generated deck
       navigate(`/projects/${projectId}/decks/${response.deck_id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate pitch deck');
+      setError(err instanceof Error ? err.message : 'Failed to generate presentation');
     } finally {
       setIsGenerating(false);
     }
@@ -76,7 +76,7 @@ export const GenerationPage: React.FC<GenerationPageProps> = ({ projectId }) => 
           <div className="flex justify-between items-center py-4">
             <div>
               <h1 className="text-xl font-semibold text-gray-900">
-                Generate Pitch Deck
+                Generate Presentation
               </h1>
               <p className="text-sm text-gray-500">
                 Create a professional investor presentation with AI
