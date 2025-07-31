@@ -4,7 +4,7 @@
  * but are used for organizing conversations by context type
  */
 
-import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
+import { v4, v5 } from 'uuid';
 
 /**
  * Namespace UUID for virtual dashboard decks
@@ -20,7 +20,7 @@ const VIRTUAL_DASHBOARD_NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 export function createDashboardVirtualDeckId(userUuid: string): string {
   // Use UUID v5 to create a deterministic UUID based on user ID
   // This ensures the same user always gets the same virtual deck ID
-  return uuidv5(`dashboard-${userUuid}`, VIRTUAL_DASHBOARD_NAMESPACE);
+  return v5(`dashboard-${userUuid}`, VIRTUAL_DASHBOARD_NAMESPACE);
 }
 
 /**
@@ -49,5 +49,5 @@ export function validateVirtualDeckOwnership(deckId: string, userUuid: string): 
  * @returns A new UUID v4
  */
 export function generateUuid(): string {
-  return uuidv4();
+  return v4();
 }
