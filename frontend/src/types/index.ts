@@ -110,7 +110,10 @@ export const ChatMessageSchema = z.object({
   id: z.string(),
   role: ChatMessageRoleSchema,
   content: z.string(),
-  timestamp: z.date(),
+  timestamp: z.union([z.date(), z.string()]).transform((val) => {
+    // Convert string timestamps to Date objects
+    return val instanceof Date ? val : new Date(val);
+  }),
   suggestions: z.array(z.string()).optional(),
   actions: z.array(z.any()).optional(), // MessageAction type will be defined separately
 });

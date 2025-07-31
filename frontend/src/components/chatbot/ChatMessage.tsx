@@ -64,13 +64,21 @@ const parseMarkdown = (text: string): string => {
 };
 
 // Message status indicator component
-const MessageStatus: React.FC<{ 
+const MessageStatus: React.FC<{
   role: 'user' | 'assistant';
-  timestamp: Date;
+  timestamp: Date | string;
   isLoading?: boolean;
 }> = ({ role, timestamp, isLoading }) => {
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], {
+  const formatTime = (date: Date | string) => {
+    // Ensure we have a proper Date object
+    const dateObj = date instanceof Date ? date : new Date(date);
+
+    // Check if the date is valid
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid time';
+    }
+
+    return dateObj.toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit',
     });
