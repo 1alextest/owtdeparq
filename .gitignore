@@ -67,8 +67,14 @@ jspm_packages/
 .superdesign/
 .windsurfrules
 .kilocode/
+.kiro/
 .github/copilot-instructions.md
 CLAUDE.md
+
+# Development artifacts and legacy directories
+src/
+test-ai-features.ps1
+test-ai-features.sh
 
 # Additional Railway deployment entries
 *.stackdump
