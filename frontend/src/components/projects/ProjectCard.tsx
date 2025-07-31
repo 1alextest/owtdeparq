@@ -1,6 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Project } from '../../types';
 import { useNavigation } from '../../App';
+import {
+  getProjectStatusInfo,
+  formatRelativeTime,
+  getActionIcon,
+  type ProjectAction
+} from '../../utils/projectStatus';
 
 interface ProjectCardProps {
   project: Project;
@@ -10,17 +16,20 @@ interface ProjectCardProps {
   onDuplicate?: (project: Project) => void;
 }
 
-export const ProjectCard: React.FC<ProjectCardProps> = ({ 
-  project, 
-  onSelect, 
-  onEdit, 
+export const ProjectCard: React.FC<ProjectCardProps> = ({
+  project,
+  onSelect,
+  onEdit,
   onDelete,
-  onDuplicate 
+  onDuplicate
 }) => {
   const { navigate } = useNavigation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
+  // Get enhanced project status information
+  const statusInfo = getProjectStatusInfo(project);
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Unknown';
     return new Date(dateString).toLocaleDateString();
@@ -145,23 +154,41 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           )}
         </div>
 
-        {/* Metadata */}
-        <div className="flex items-center text-sm text-gray-500 space-x-4 mb-4">
-          <div className="flex items-center">
-            <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span className="truncate">{project.deck_count} deck{project.deck_count !== 1 ? 's' : ''}</span>
+        {/* Enhanced Status and Metadata */}
+        <div className="space-y-3 mb-4">
+          {/* Status Badge and Activity */}
+          <div className="flex items-center justify-between">
+            <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusInfo.statusColor}`}>
+              {statusInfo.statusText}
+            </div>
+            <span className="text-xs text-gray-500">
+              {statusInfo.activityText}
+            </span>
           </div>
-          <div className="flex items-center min-w-0">
-            <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a2 2 0 012 2v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2z" />
-            </svg>
-            <span className="truncate">Created {formatDate(project.created_at)}</span>
+
+          {/* Metadata Row */}
+          <div className="flex items-center text-sm text-gray-500 space-x-4">
+            <div className="flex items-center">
+              <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="truncate">{project.deck_count} deck{project.deck_count !== 1 ? 's' : ''}</span>
+            </div>
+            <div className="flex items-center min-w-0">
+              <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="truncate">
+                {statusInfo.lastActivityDate
+                  ? formatRelativeTime(statusInfo.lastActivityDate)
+                  : 'No activity'
+                }
+              </span>
+            </div>
           </div>
         </div>
         
-        {/* Action buttons - always at bottom */}
+        {/* Dynamic Action buttons - always at bottom */}
         <div className="flex space-x-2 mt-auto">
           <button
             onClick={() => onSelect(project)}
@@ -169,19 +196,32 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           >
             Open Project
           </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              // Navigate to generation page
-              navigate(`/projects/${project.id}/generate`);
-            }}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors inline-flex items-center flex-shrink-0"
-          >
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Generate
-          </button>
+
+          {/* Primary suggested action */}
+          {statusInfo.suggestedActions.length > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const primaryAction = statusInfo.suggestedActions.find(a => a.priority === 'primary');
+                if (primaryAction?.action === 'generate') {
+                  navigate(`/projects/${project.id}/generate`);
+                }
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-flex items-center flex-shrink-0 ${
+                statusInfo.suggestedActions.find(a => a.priority === 'primary')?.color || 'bg-green-600 hover:bg-green-700 text-white'
+              }`}
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d={getActionIcon(statusInfo.suggestedActions.find(a => a.priority === 'primary')?.icon || 'lightning')}
+                />
+              </svg>
+              {statusInfo.suggestedActions.find(a => a.priority === 'primary')?.label || 'Generate'}
+            </button>
+          )}
         </div>
       </div>
     </div>

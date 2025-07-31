@@ -1,6 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Project } from '../../types';
 import { useNavigation } from '../../App';
+import {
+  getProjectStatusInfo,
+  formatRelativeTime,
+  getActionIcon
+} from '../../utils/projectStatus';
 
 interface ProjectListViewProps {
   projects: Project[];
@@ -65,7 +70,7 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
           <div className="col-span-4">Project</div>
           <div className="col-span-2">Status</div>
           <div className="col-span-2">Created</div>
-          <div className="col-span-2">Modified</div>
+          <div className="col-span-2">Last Activity</div>
           <div className="col-span-2">Actions</div>
         </div>
       </div>
@@ -102,11 +107,21 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
                 </div>
               </div>
 
-              {/* Status */}
+              {/* Enhanced Status */}
               <div className="col-span-2">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(project.deck_count || 0)}`}>
-                  {getStatusText(project.deck_count || 0)}
-                </span>
+                {(() => {
+                  const statusInfo = getProjectStatusInfo(project);
+                  return (
+                    <div className="space-y-1">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusInfo.statusColor}`}>
+                        {statusInfo.statusText}
+                      </span>
+                      <div className="text-xs text-gray-400">
+                        {statusInfo.activityText}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Created Date */}
@@ -116,46 +131,84 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
                 </span>
               </div>
 
-              {/* Modified Date */}
+              {/* Last Activity */}
               <div className="col-span-2">
                 <span className="text-sm text-gray-500">
-                  {formatDate(project.updated_at)}
+                  {(() => {
+                    const statusInfo = getProjectStatusInfo(project);
+                    return statusInfo.lastActivityDate
+                      ? formatRelativeTime(statusInfo.lastActivityDate)
+                      : 'No activity';
+                  })()}
                 </span>
               </div>
 
-              {/* Actions */}
+              {/* Dynamic Actions */}
               <div className="col-span-2">
-                <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {/* Generate Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/projects/${project.id}/generate`);
-                    }}
-                    className="p-1.5 text-green-600 hover:bg-green-100 rounded-md transition-colors"
-                    title="Generate deck"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </button>
+                {(() => {
+                  const statusInfo = getProjectStatusInfo(project);
+                  const primaryAction = statusInfo.suggestedActions.find(a => a.priority === 'primary');
+                  const secondaryAction = statusInfo.suggestedActions.find(a => a.priority === 'secondary');
 
-                  {/* Edit Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEdit(project);
-                    }}
-                    className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
-                    title="Edit project"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
+                  return (
+                    <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* Primary Action */}
+                      {primaryAction && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (primaryAction.action === 'generate') {
+                              navigate(`/projects/${project.id}/generate`);
+                            }
+                          }}
+                          className="p-1.5 text-green-600 hover:bg-green-100 rounded-md transition-colors"
+                          title={primaryAction.label}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getActionIcon(primaryAction.icon)} />
+                          </svg>
+                        </button>
+                      )}
 
-                  {/* More Actions Dropdown */}
-                  <div className="relative" ref={dropdownRef}>
+                      {/* Secondary Action */}
+                      {secondaryAction && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (secondaryAction.action === 'edit') {
+                              onEdit(project);
+                            }
+                          }}
+                          className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
+                          title={secondaryAction.label}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getActionIcon(secondaryAction.icon)} />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Empty State */}
+      {projects.length === 0 && (
+        <div className="px-6 py-12 text-center">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No projects</h3>
+          <p className="mt-1 text-sm text-gray-500">Get started by creating a new project</p>
+        </div>
+      )}
+    </div>
+  );
+};
                     <button
                       onClick={(e) => handleDropdownToggle(project.id, e)}
                       className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-md transition-colors"
