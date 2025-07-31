@@ -63,7 +63,7 @@ export class DecksService {
 
   async verifyDeckOwnership(deckId: string, userId: string): Promise<PitchDeck> {
     // Reject virtual deck IDs in real deck operations
-    if (isVirtualDashboardDeck(deckId)) {
+    if (isVirtualDashboardDeck(deckId, userId)) {
       throw new NotFoundException('Cannot perform deck operations on virtual dashboard deck');
     }
 

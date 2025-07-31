@@ -66,22 +66,33 @@ const parseMarkdown = (text: string): string => {
 // Message status indicator component
 const MessageStatus: React.FC<{
   role: 'user' | 'assistant';
-  timestamp: Date | string;
+  timestamp: Date | string | null | undefined;
   isLoading?: boolean;
 }> = ({ role, timestamp, isLoading }) => {
-  const formatTime = (date: Date | string) => {
-    // Ensure we have a proper Date object
-    const dateObj = date instanceof Date ? date : new Date(date);
+  const formatTime = (date: Date | string | null | undefined) => {
+    try {
+      // Handle null, undefined, or empty values
+      if (!date) {
+        return 'Now';
+      }
 
-    // Check if the date is valid
-    if (isNaN(dateObj.getTime())) {
-      return 'Invalid time';
+      // Ensure we have a proper Date object
+      const dateObj = date instanceof Date ? date : new Date(date);
+
+      // Check if the date is valid
+      if (isNaN(dateObj.getTime())) {
+        console.warn('Invalid date provided to formatTime:', date);
+        return 'Now';
+      }
+
+      return dateObj.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (error) {
+      console.error('Error formatting time:', error, 'Date value:', date);
+      return 'Now';
     }
-
-    return dateObj.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   };
 
   if (isLoading && role === 'assistant') {

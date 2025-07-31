@@ -37,6 +37,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.1.8",
     "@nestjs/typeorm": "^10.0.0",
+    "@types/uuid": "^10.0.0",
     "archiver": "^6.0.1",
     "axios": "^1.5.0",
     "class-transformer": "^0.5.1",
@@ -61,7 +62,8 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "sharp": "^0.32.6",
-    "typeorm": "^0.3.17"
+    "typeorm": "^0.3.17",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -109,8 +111,14 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
-    "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
-    "coverageReporters": ["text", "lcov", "html"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setup.ts"
+    ],
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
     "coverageThreshold": {
       "global": {
         "branches": 80,

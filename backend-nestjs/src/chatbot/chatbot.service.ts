@@ -23,7 +23,7 @@ export class ChatbotService {
 
   async chatWithAI(chatDto: ChatRequestDto, userId: string) {
     // Check if this is a virtual dashboard deck
-    if (isVirtualDashboardDeck(chatDto.deckId)) {
+    if (isVirtualDashboardDeck(chatDto.deckId, userId)) {
       // Validate that the virtual deck belongs to the requesting user
       if (!validateVirtualDeckOwnership(chatDto.deckId, userId)) {
         throw new UnauthorizedException('Cannot access another user\'s dashboard conversations');
