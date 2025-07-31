@@ -1,13 +1,12 @@
 import { Project } from '../types';
 
-export type ProjectStatus = 
-  | 'draft'      // No decks created yet
+export type ProjectStatus =
+  | 'empty'      // No decks yet
   | 'active'     // Has decks, recently modified
-  | 'completed'  // Has decks, no recent activity
+  | 'stable'     // Has decks, no recent activity
   | 'archived';  // Explicitly archived (future feature)
 
-export type ProjectActivity = 
-  | 'just_created'  // Created within last hour
+export type ProjectActivity =
   | 'recent'        // Modified within last 24 hours
   | 'this_week'     // Modified within last week
   | 'this_month'    // Modified within last month
@@ -16,9 +15,11 @@ export type ProjectActivity =
 export interface ProjectStatusInfo {
   status: ProjectStatus;
   activity: ProjectActivity;
-  statusText: string;
+  deckCount: number;
+  deckCountText: string;
   statusColor: string;
   activityText: string;
+  createdDate: Date | null;
   lastActivityDate: Date | null;
   suggestedActions: ProjectAction[];
 }
@@ -37,21 +38,21 @@ export interface ProjectAction {
  */
 export function getProjectStatus(project: Project): ProjectStatus {
   const deckCount = project.deck_count || 0;
-  
+
   if (deckCount === 0) {
-    return 'draft';
+    return 'empty';
   }
-  
+
   const lastActivity = getLastActivityDate(project);
-  const daysSinceActivity = lastActivity 
+  const daysSinceActivity = lastActivity
     ? Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24))
     : 999;
-  
+
   if (daysSinceActivity <= 7) {
     return 'active';
   }
-  
-  return 'completed';
+
+  return 'stable';
 }
 
 /**
@@ -59,26 +60,24 @@ export function getProjectStatus(project: Project): ProjectStatus {
  */
 export function getProjectActivity(project: Project): ProjectActivity {
   const lastActivity = getLastActivityDate(project);
-  
+
   if (!lastActivity) {
     return 'older';
   }
-  
+
   const now = Date.now();
   const diffMs = now - lastActivity.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
   const diffDays = diffHours / 24;
-  
-  if (diffHours <= 1) {
-    return 'just_created';
-  } else if (diffHours <= 24) {
+
+  if (diffHours <= 24) {
     return 'recent';
   } else if (diffDays <= 7) {
     return 'this_week';
   } else if (diffDays <= 30) {
     return 'this_month';
   }
-  
+
   return 'older';
 }
 
@@ -104,46 +103,45 @@ export function getLastActivityDate(project: Project): Date | null {
 export function getProjectStatusInfo(project: Project): ProjectStatusInfo {
   const status = getProjectStatus(project);
   const activity = getProjectActivity(project);
+  const deckCount = project.deck_count || 0;
+  const createdDate = project.created_at ? new Date(project.created_at) : null;
   const lastActivityDate = getLastActivityDate(project);
-  
-  // Status text and colors
-  const statusConfig = {
-    draft: {
-      text: 'Draft',
-      color: 'bg-gray-100 text-gray-800 border-gray-200',
-    },
-    active: {
-      text: 'Active',
-      color: 'bg-green-100 text-green-800 border-green-200',
-    },
-    completed: {
-      text: 'Completed',
-      color: 'bg-blue-100 text-blue-800 border-blue-200',
-    },
-    archived: {
-      text: 'Archived',
-      color: 'bg-gray-100 text-gray-600 border-gray-200',
-    },
-  };
-  
+
+  // Deck count text
+  const deckCountText = deckCount === 0
+    ? 'No decks'
+    : deckCount === 1
+      ? '1 deck'
+      : `${deckCount} decks`;
+
+  // Status colors based on deck count and activity
+  const statusColor = deckCount === 0
+    ? 'bg-gray-100 text-gray-600 border-gray-200'  // Empty project
+    : activity === 'recent'
+      ? 'bg-green-100 text-green-800 border-green-200'  // Recently active
+      : activity === 'this_week'
+        ? 'bg-blue-100 text-blue-800 border-blue-200'  // Active this week
+        : 'bg-gray-100 text-gray-700 border-gray-200';  // Stable/older
+
   // Activity text
   const activityConfig = {
-    just_created: 'Just created',
     recent: 'Active today',
     this_week: 'Active this week',
     this_month: 'Active this month',
-    older: 'Inactive',
+    older: 'Stable',
   };
-  
+
   // Suggested actions based on status
   const suggestedActions = getSuggestedActions(project, status, activity);
-  
+
   return {
     status,
     activity,
-    statusText: statusConfig[status].text,
-    statusColor: statusConfig[status].color,
+    deckCount,
+    deckCountText,
+    statusColor,
     activityText: activityConfig[activity],
+    createdDate,
     lastActivityDate,
     suggestedActions,
   };
@@ -153,34 +151,23 @@ export function getProjectStatusInfo(project: Project): ProjectStatusInfo {
  * Get suggested actions based on project state
  */
 function getSuggestedActions(
-  project: Project, 
-  status: ProjectStatus, 
+  project: Project,
+  status: ProjectStatus,
   activity: ProjectActivity
 ): ProjectAction[] {
   const actions: ProjectAction[] = [];
   const deckCount = project.deck_count || 0;
-  
-  // Primary actions based on status
-  if (status === 'draft') {
-    actions.push({
-      id: 'generate',
-      label: 'Create First Deck',
-      icon: 'lightning',
-      color: 'bg-green-600 hover:bg-green-700 text-white',
-      action: 'generate',
-      priority: 'primary',
-    });
-  } else {
-    actions.push({
-      id: 'generate',
-      label: 'New Deck',
-      icon: 'plus',
-      color: 'bg-green-600 hover:bg-green-700 text-white',
-      action: 'generate',
-      priority: 'primary',
-    });
-  }
-  
+
+  // Primary action - always "Add Deck" since projects can have multiple decks
+  actions.push({
+    id: 'generate',
+    label: deckCount === 0 ? 'Create First Deck' : 'Add Deck',
+    icon: deckCount === 0 ? 'lightning' : 'plus',
+    color: 'bg-green-600 hover:bg-green-700 text-white',
+    action: 'generate',
+    priority: 'primary',
+  });
+
   // Secondary actions
   actions.push({
     id: 'edit',
@@ -190,8 +177,8 @@ function getSuggestedActions(
     action: 'edit',
     priority: 'secondary',
   });
-  
-  // Tertiary actions
+
+  // Tertiary actions - only show if project has decks
   if (deckCount > 0) {
     actions.push({
       id: 'duplicate',
@@ -201,17 +188,17 @@ function getSuggestedActions(
       action: 'duplicate',
       priority: 'tertiary',
     });
-    
+
     actions.push({
       id: 'export',
-      label: 'Export',
+      label: 'Export All',
       icon: 'download',
       color: 'bg-purple-600 hover:bg-purple-700 text-white',
       action: 'export',
       priority: 'tertiary',
     });
   }
-  
+
   return actions;
 }
 

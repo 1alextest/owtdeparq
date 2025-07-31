@@ -58,7 +58,7 @@ export class ProjectsService {
 
       // Add deck count to each project without loading full relations
       projects.forEach(project => {
-        (project as any).deckCount = deckCountMap.get(project.id) || 0;
+        (project as any).deck_count = deckCountMap.get(project.id) || 0;
       });
     }
 
