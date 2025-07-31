@@ -62,13 +62,15 @@ jspm_packages/
 .yarn-integrity
 
 # AI/Development tools and configurations
-.cursor/
+.augment/
 .clinerules/
-.superdesign/
-.windsurfrules
+.cursor/
+.github/
 .kilocode/
 .kiro/
-.github/copilot-instructions.md
+.superdesign/
+.vscode/
+.windsurfrules
 CLAUDE.md
 
 # Development artifacts and legacy directories
