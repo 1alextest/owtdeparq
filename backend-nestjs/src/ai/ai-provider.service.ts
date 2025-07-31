@@ -95,7 +95,7 @@ export class AiProviderService {
     context: PromptContext,
     options: GenerationOptions = {}
   ): Promise<GenerationResult> {
-    const providerOrder = this.getProviderOrder(options.model || "openai");
+    const providerOrder = this.getProviderOrder(options.model || "groq");
 
     for (const providerName of providerOrder) {
       try {
@@ -150,7 +150,7 @@ export class AiProviderService {
     options: GenerationOptions = {}
   ): Promise<GenerationResult> {
     this.logger.log(`generateFreeFormDeck called with model: ${options.model}`);
-    const providerOrder = this.getProviderOrder(options.model || "openai");
+    const providerOrder = this.getProviderOrder(options.model || "groq");
     this.logger.log(`Provider order: ${providerOrder.join(", ")}`);
 
     for (const providerName of providerOrder) {
@@ -207,7 +207,7 @@ export class AiProviderService {
     slideContext?: any,
     options: GenerationOptions = {}
   ): Promise<GenerationResult> {
-    const providerOrder = this.getProviderOrder(options.model || "openai");
+    const providerOrder = this.getProviderOrder(options.model || "groq");
 
     for (const providerName of providerOrder) {
       try {

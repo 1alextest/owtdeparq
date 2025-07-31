@@ -183,7 +183,7 @@ export class ChatbotService {
       chatDto.message,
       null, // No deck context
       null, // No slide context
-      { model: 'openai' } // Use OpenAI for better chat responses
+      { model: 'groq' } // Use Groq as default for chat responses
     );
 
     if (!result.success) {

@@ -266,14 +266,26 @@ Content: [Content]
   }
 
   static buildChatbotPrompt(userMessage: string, deckContext: any, slideContext?: any): string {
+    // Debug logging to identify the null access issue
+    console.log('🔍 buildChatbotPrompt called with:', {
+      deckContext,
+      slideContext,
+      userMessage: userMessage?.substring(0, 50) + '...'
+    });
+
+    // Safe access to deckContext properties
+    const deckTitle = deckContext?.title || 'Dashboard Conversation';
+    const deckMode = deckContext?.mode || 'general guidance';
+    const slideInfo = slideContext ? `- Current Slide: ${slideContext.title || 'Untitled'} (${slideContext.slideType || 'unknown'})` : '';
+
     return `${this.SYSTEM_PROMPT}
 
 You are helping a user improve their pitch deck. Be specific, actionable, and focus on investor appeal.
 
 Current Context:
-- Deck: ${deckContext.title || 'Untitled Deck'}
-- Mode: ${deckContext.mode || 'unknown'}
-${slideContext ? `- Current Slide: ${slideContext.title} (${slideContext.slideType})` : ''}
+- Deck: ${deckTitle}
+- Mode: ${deckMode}
+${slideInfo}
 
 User Message: ${userMessage}
 
