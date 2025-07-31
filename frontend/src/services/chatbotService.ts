@@ -26,8 +26,8 @@ export class ChatbotService {
   async sendMessage(message: string, context: ChatContext): Promise<ChatResponse> {
     const request: ChatRequest = {
       message: message.trim(),
-      deckId: context.deckId!,
-      slideId: context.slideId,
+      ...(context.deckId && { deckId: context.deckId }),
+      ...(context.slideId && { slideId: context.slideId }),
       context: {
         type: context.type,
         deckTitle: context.deckTitle,

@@ -150,7 +150,7 @@ export type QuickAction = z.infer<typeof QuickActionSchema>;
 // Chatbot API Request/Response Types
 export const ChatRequestSchema = z.object({
   message: z.string().min(1, 'Message cannot be empty').max(2000, 'Message too long'),
-  deckId: z.string().uuid('Invalid deck ID'),
+  deckId: z.string().uuid('Invalid deck ID').optional(),
   slideId: z.string().uuid('Invalid slide ID').optional(),
   context: z.any().optional(),
 });

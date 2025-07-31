@@ -18,8 +18,11 @@ export class ChatbotService {
   ) {}
 
   async chatWithAI(chatDto: ChatRequestDto, userId: string) {
-    // Verify deck ownership
-    const deck = await this.decksService.verifyDeckOwnership(chatDto.deckId, userId);
+    // Verify deck ownership if deckId is provided
+    let deck = null;
+    if (chatDto.deckId) {
+      deck = await this.decksService.verifyDeckOwnership(chatDto.deckId, userId);
+    }
 
     // Get slide context if specified
     let slideContext = null;

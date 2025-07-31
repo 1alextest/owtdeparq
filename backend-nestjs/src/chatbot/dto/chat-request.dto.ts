@@ -7,10 +7,10 @@ export class ChatRequestDto {
   @IsNotEmpty()
   message: string;
 
-  @ApiProperty({ description: 'ID of the deck being discussed' })
+  @ApiProperty({ description: 'ID of the deck being discussed', required: false })
   @IsUUID()
-  @IsNotEmpty()
-  deckId: string;
+  @IsOptional()
+  deckId?: string;
 
   @ApiProperty({ description: 'ID of specific slide being discussed', required: false })
   @IsUUID()
