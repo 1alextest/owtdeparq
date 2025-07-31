@@ -1,5 +1,5 @@
 /**
- * Virtual deck constants and utilities
+ * Virtual deck constants and utilities for backend
  * These represent special deck IDs that don't correspond to real database records
  * but are used for organizing conversations by context type
  */

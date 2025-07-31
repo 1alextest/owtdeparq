@@ -8,7 +8,7 @@ import {
   ChatContext,
   QuickAction,
 } from '../types';
-import { createDashboardVirtualDeckId } from '../../shared/constants/virtual-decks';
+import { createDashboardVirtualDeckId } from '../utils/virtual-decks';
 
 /**
  * Service class for chatbot API integration

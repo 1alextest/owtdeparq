@@ -9,7 +9,7 @@ import { AiProviderService } from '../ai/ai-provider.service';
 import {
   isVirtualDashboardDeck,
   validateVirtualDeckOwnership
-} from '../../../shared/constants/virtual-decks';
+} from '../utils/virtual-decks';
 
 @Injectable()
 export class ChatbotService {

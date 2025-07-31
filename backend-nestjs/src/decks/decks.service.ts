@@ -5,7 +5,7 @@ import { CreateDeckDto } from './dto/create-deck.dto';
 import { UpdateDeckDto } from './dto/update-deck.dto';
 import { PitchDeck } from '../entities/pitch-deck.entity';
 import { ProjectsService } from '../projects/projects.service';
-import { isVirtualDashboardDeck } from '../../../shared/constants/virtual-decks';
+import { isVirtualDashboardDeck } from '../utils/virtual-decks';
 
 @Injectable()
 export class DecksService {
