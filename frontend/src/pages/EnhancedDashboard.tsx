@@ -13,6 +13,7 @@ import { WelcomeFlow } from '../components/onboarding/WelcomeFlow';
 import { useLazyLoading, useIntersectionObserver } from '../hooks/useLazyLoading';
 import { apiClient } from '../services/apiClient';
 import { FloatingChatbotTrigger } from '../components/chatbot/ChatbotTrigger';
+import { ChatbotPanel } from '../components/chatbot/ChatbotPanel';
 import { useChatbot } from '../contexts/ChatbotContext';
 
 export const EnhancedDashboard: React.FC = () => {
@@ -555,6 +556,9 @@ export const EnhancedDashboard: React.FC = () => {
         label="AI Assistant for pitch deck help"
         size="lg"
       />
+
+      {/* Chatbot Panel */}
+      <ChatbotPanel />
     </>
   );
 };
