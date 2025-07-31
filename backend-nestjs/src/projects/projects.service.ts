@@ -46,6 +46,8 @@ export class ProjectsService {
     // If projects exist, get presentation counts separately to avoid N+1 query
     if (projects.length > 0) {
       const projectIds = projects.map(p => p.id);
+
+      // Get presentation counts
       const presentationCounts = await this.presentationRepository
         .createQueryBuilder('presentation')
         .select('presentation.projectId', 'projectId')
@@ -61,9 +63,10 @@ export class ProjectsService {
 
       // Add presentation count to each project without loading full relations
       projects.forEach(project => {
-        (project as any).presentation_count = presentationCountMap.get(project.id) || 0;
+        const presentationCount = presentationCountMap.get(project.id) || 0;
+        (project as any).presentation_count = presentationCount;
         // Keep deck_count for backward compatibility, but it should be deprecated
-        (project as any).deck_count = (project as any).presentation_count;
+        (project as any).deck_count = presentationCount;
       });
     }
 

@@ -22,16 +22,14 @@ export const AppDataSource = new DataSource({
   type: 'postgres',
   url: databaseUrl,
   
-  // Entity paths for migrations
+  // Entity paths for migrations - TypeScript only
   entities: [
-    'src/entities/*.entity.ts',
-    'dist/entities/*.entity.js'
+    'src/entities/*.entity.ts'
   ],
-  
-  // Migration configuration
+
+  // Migration configuration - TypeScript only to avoid duplicates
   migrations: [
-    'src/database/migrations/*.ts',
-    'dist/database/migrations/*.js'
+    'src/database/migrations/*.ts'
   ],
   
   // Migration table name
