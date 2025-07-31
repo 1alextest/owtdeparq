@@ -110,12 +110,25 @@ export const EnhancedDashboard: React.FC = () => {
     }
   }, [user, logout]);
 
-  // Load projects on mount
+  // Load projects on mount and when returning to dashboard
   useEffect(() => {
     if (user && !authLoading) {
       loadProjects();
     }
   }, [user, authLoading, loadProjects]);
+
+  // Refresh projects when window gains focus (user returns to tab/app)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user && !authLoading && !loading) {
+        console.log('Window focused - refreshing projects');
+        loadProjects();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user, authLoading, loading, loadProjects]);
 
   // Check for first-time user
   useEffect(() => {
@@ -392,6 +405,18 @@ export const EnhancedDashboard: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
+              <button
+                onClick={loadProjects}
+                disabled={loading}
+                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors inline-flex items-center text-sm font-medium disabled:opacity-50"
+                title="Refresh project data"
+              >
+                <svg className="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {loading ? 'Refreshing...' : 'Refresh'}
+              </button>
+
               {allProjects.length > 0 && (
                 <button
                   onClick={handleQuickStart}

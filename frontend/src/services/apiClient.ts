@@ -1,10 +1,11 @@
 import { auth } from '../config/firebase';
-import { 
-  Project, 
-  ChatRequest, 
-  ChatResponse, 
-  ImproveSpeakerNotesRequest, 
-  ImproveSpeakerNotesResponse 
+import {
+  Project,
+  Presentation,
+  ChatRequest,
+  ChatResponse,
+  ImproveSpeakerNotesRequest,
+  ImproveSpeakerNotesResponse
 } from '../types';
 
 // Type definitions for API requests
@@ -183,6 +184,27 @@ class ApiClient {
 
   async getProjectStats(): Promise<any> {
     return this.get<any>('/projects/stats');
+  }
+
+  // Presentation methods
+  async createPresentation(data: { projectId: string; name: string; description?: string }): Promise<Presentation> {
+    return this.post<Presentation>('/presentations', data);
+  }
+
+  async getProjectPresentations(projectId: string): Promise<Presentation[]> {
+    return this.get<Presentation[]>(`/presentations?projectId=${projectId}`);
+  }
+
+  async getPresentation(id: string): Promise<Presentation> {
+    return this.get<Presentation>(`/presentations/${id}`);
+  }
+
+  async updatePresentation(id: string, data: { name?: string; description?: string }): Promise<Presentation> {
+    return this.patch<Presentation>(`/presentations/${id}`, data);
+  }
+
+  async deletePresentation(id: string): Promise<{ message: string }> {
+    return this.delete<{ message: string }>(`/presentations/${id}`);
   }
 
   // Generation methods
