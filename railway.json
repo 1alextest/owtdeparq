@@ -2,18 +2,9 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "cd backend-nestjs && npm ci && npm run build"
+    "buildCommand": "echo 'Use backend-nestjs directory for backend deployment'"
   },
   "deploy": {
-    "startCommand": "cd backend-nestjs && npm run start:prod",
-    "healthcheckPath": "/health"
-  },
-  "environments": {
-    "production": {
-      "variables": {
-        "NODE_ENV": "production",
-        "PORT": "3001"
-      }
-    }
+    "startCommand": "echo 'This root config is for reference only. Deploy backend-nestjs and frontend separately.'"
   }
 }
