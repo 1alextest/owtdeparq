@@ -77,6 +77,20 @@ CLAUDE.md
 src/
 test-ai-features.ps1
 test-ai-features.sh
+test-*.js
+*-test.js
+*.test.js
+demo/
+temp/
+tmp/
+*.tmp
+*.bak
+*.backup
+
+# Root level package files (use service-specific packages)
+/package.json
+/package-lock.json
+/node_modules/
 
 # Additional Railway deployment entries
 *.stackdump
