@@ -42,42 +42,37 @@ import { LearningPattern } from './entities/learning-pattern.entity';
       envFilePath: ['.env.local', '.env'],
     }),
 
-    // TypeORM configuration for Supabase PostgreSQL
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => {
-        const databaseUrl = configService.get('DATABASE_URL');
-        const isProduction = configService.get('NODE_ENV') === 'production';
-        const isDevelopment = configService.get('NODE_ENV') === 'development';
-        
-        if (!databaseUrl) {
-          console.error('❌ DATABASE_URL environment variable is required');
-          console.error('Please check your .env file and ensure DATABASE_URL is set');
-          throw new Error('DATABASE_URL environment variable is required');
-        }
+    // TypeORM configuration for Supabase PostgreSQL - Optional for initial deployment
+    ...(process.env.DATABASE_URL ? [
+      TypeOrmModule.forRootAsync({
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => {
+          const databaseUrl = configService.get('DATABASE_URL');
+          const isProduction = configService.get('NODE_ENV') === 'production';
+          const isDevelopment = configService.get('NODE_ENV') === 'development';
+          
+          console.log('🔗 Configuring database connection...');
+          console.log('Environment:', configService.get('NODE_ENV', 'development'));
+          console.log('Database URL configured:', databaseUrl ? '✅' : '❌');
 
-        console.log('🔗 Configuring database connection...');
-        console.log('Environment:', configService.get('NODE_ENV', 'development'));
-        console.log('Database URL configured:', databaseUrl ? '✅' : '❌');
-
-        return {
-          type: 'postgres',
-          url: databaseUrl,
-          entities: [
-            Project,
-            Presentation,
-            PitchDeck,
-            Slide,
-            SlideTemplate,
-            MediaFile,
-            UserAiSettings,
-            DeckVersion,
-            ChatContext,
-            ContextMemoryEvent,
-            LearningPattern,
-          ],
-          // Use migrations in production, synchronize in development
-          synchronize: isDevelopment,
+          return {
+            type: 'postgres',
+            url: databaseUrl,
+            entities: [
+              Project,
+              Presentation,
+              PitchDeck,
+              Slide,
+              SlideTemplate,
+              MediaFile,
+              UserAiSettings,
+              DeckVersion,
+              ChatContext,
+              ContextMemoryEvent,
+              LearningPattern,
+            ],
+            // Use migrations in production, synchronize in development
+            synchronize: isDevelopment,
           logging: isDevelopment ? ['query', 'error', 'warn'] : ['error'],
           // SSL configuration for Supabase (always required for Supabase)
           ssl: { rejectUnauthorized: false },
@@ -97,23 +92,27 @@ import { LearningPattern } from './entities/learning-pattern.entity';
         };
       },
       inject: [ConfigService],
-    }),
+    })
+    ] : []),
 
-    // Feature modules
-    SupabaseModule,
-    AuthModule,
-    ProjectsModule,
-    PresentationsModule,
-    DecksModule,
-    SlidesModule,
-    GenerationModule,
-    ChatbotModule,
-    ExportModule,
-    TemplatesModule,
-    MediaModule,
-    VersionsModule,
-    ContextModule,
+    // Feature modules - Only include non-database dependent modules initially
     AiModule,
+    // Database-dependent modules (will be enabled when DATABASE_URL is available)
+    ...(process.env.DATABASE_URL ? [
+      SupabaseModule,
+      AuthModule,
+      ProjectsModule,
+      PresentationsModule,
+      DecksModule,
+      SlidesModule,
+      GenerationModule,
+      ChatbotModule,
+      ExportModule,
+      TemplatesModule,
+      MediaModule,
+      VersionsModule,
+      ContextModule,
+    ] : []),
   ],
   controllers: [AppController],
   providers: [AppService],
