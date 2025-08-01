@@ -19,7 +19,7 @@ import { VersionsModule } from './versions/versions.module';
 import { ContextModule } from './context/context.module';
 import { AiModule } from './ai/ai.module';
 import { SupabaseModule } from './supabase/supabase.module';
-import { HealthModule } from './health/health.module';
+
 
 // Import all entities
 import { Project } from './entities/project.entity';
@@ -114,7 +114,6 @@ import { LearningPattern } from './entities/learning-pattern.entity';
     VersionsModule,
     ContextModule,
     AiModule,
-    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -17,10 +17,20 @@ export class HealthController {
 
   @Get()
   async checkHealth() {
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    };
+    try {
+      return {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        service: 'owtdeparq-backend',
+        version: '1.0.0'
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        error: error.message
+      };
+    }
   }
 
   @Get('database')

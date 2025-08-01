@@ -18,12 +18,7 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get('health')
-  @ApiOperation({ summary: 'Detailed health check' })
-  @ApiResponse({ status: 200, description: 'Health status' })
-  getHealth() {
-    return this.appService.getHealth();
-  }
+
 
   @Get('health/database')
   @ApiOperation({ summary: 'Database connection health check' })
