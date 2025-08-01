@@ -8,8 +8,12 @@ async function bootstrap() {
     console.log('🚀 Starting Owtdeparq Backend...');
     console.log('Environment:', process.env.NODE_ENV || 'development');
     console.log('Port:', process.env.PORT || 3000);
+    console.log('Database URL present:', !!process.env.DATABASE_URL);
     
-    const app = await NestFactory.create(AppModule);
+    console.log('📦 Creating NestJS application...');
+    const app = await NestFactory.create(AppModule, {
+      logger: ['error', 'warn', 'log'],
+    });
     console.log('✅ NestJS application created successfully');
 
     // Enable CORS for frontend communication

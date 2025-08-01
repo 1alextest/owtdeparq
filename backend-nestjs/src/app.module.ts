@@ -95,23 +95,23 @@ import { LearningPattern } from './entities/learning-pattern.entity';
     })
     ] : []),
 
-    // Feature modules - Only include non-database dependent modules initially
-    AiModule,
+    // Minimal modules for initial deployment - add others gradually
+    // AiModule, // Temporarily disabled
     // Database-dependent modules (will be enabled when DATABASE_URL is available)
     ...(process.env.DATABASE_URL ? [
-      SupabaseModule,
-      AuthModule,
-      ProjectsModule,
-      PresentationsModule,
-      DecksModule,
-      SlidesModule,
-      GenerationModule,
-      ChatbotModule,
-      ExportModule,
-      TemplatesModule,
-      MediaModule,
-      VersionsModule,
-      ContextModule,
+      // SupabaseModule,
+      // AuthModule,
+      // ProjectsModule,
+      // PresentationsModule,
+      // DecksModule,
+      // SlidesModule,
+      // GenerationModule,
+      // ChatbotModule,
+      // ExportModule,
+      // TemplatesModule,
+      // MediaModule,
+      // VersionsModule,
+      // ContextModule,
     ] : []),
   ],
   controllers: [AppController],
