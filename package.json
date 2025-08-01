@@ -5,8 +5,8 @@
   "private": true,
   "scripts": {
     "build": "cd backend-nestjs && npm ci && npm run build",
-    "start": "cd backend-nestjs && npm run start:prod",
-    "start:prod": "cd backend-nestjs && npm run start:prod"
+    "start": "cd backend-nestjs && node dist/main",
+    "start:prod": "cd backend-nestjs && node dist/main"
   },
   "engines": {
     "node": ">=18.0.0",
