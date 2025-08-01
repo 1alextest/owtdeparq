@@ -9,8 +9,8 @@ interface WelcomeFlowProps {
 export const WelcomeFlow: React.FC<WelcomeFlowProps> = ({ onComplete }) => {
   const { navigate } = useNavigation();
   const [step, setStep] = useState<'welcome' | 'intent' | 'quick-start'>('welcome');
-  const [intent] = useState<'quick' | 'detailed' | null>(null);
-  // TODO: Implement intent handling with setIntent
+  // const [intent] = useState<'quick' | 'detailed' | null>(null);
+  // TODO: Implement intent handling
   const [loading, setLoading] = useState(false);
 
   const handleQuickStart = async (prompt: string) => {

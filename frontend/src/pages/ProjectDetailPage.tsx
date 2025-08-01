@@ -22,7 +22,8 @@ interface ProjectDetailPageProps {
 export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   projectId,
 }) => {
-  const { navigate, goBack } = useNavigation();
+  const { navigate } = useNavigation();
+  // const { navigate, goBack } = useNavigation(); // TODO: Implement back navigation
   const [project, setProject] = useState<Project | null>(null);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);

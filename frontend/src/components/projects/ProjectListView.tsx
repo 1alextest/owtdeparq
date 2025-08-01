@@ -3,7 +3,7 @@ import { Project } from '../../types';
 import { useNavigation } from '../../App';
 import {
   getProjectStatusInfo,
-  formatRelativeTime,
+  // formatRelativeTime,
   getActionIcon
 } from '../../utils/projectStatus';
 

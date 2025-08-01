@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { apiClient } from '../../services/apiClient';
 import { SlideRegenerationModal } from './SlideRegenerationModal';
 import { InlineChatbotTrigger } from '../chatbot/ChatbotTrigger';
@@ -92,7 +92,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     setHasUnsavedChanges(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!hasUnsavedChanges) return;
 
     try {
@@ -105,7 +105,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
     } catch (error) {
       // Error handling is done by parent component
     }
-  };
+  }, [hasUnsavedChanges, onSlideUpdate, slide.id, title, content, speakerNotes]);
 
   const handleRegenerate = async (improvementType: string) => {
     try {

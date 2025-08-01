@@ -42,7 +42,7 @@ export const EnhancedDashboard: React.FC = () => {
   
   // View preferences
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [showArchived, setShowArchived] = useState(false);
+  // const [showArchived, setShowArchived] = useState(false); // TODO: Implement archived projects
   
   // Chatbot integration
   const { updateContext } = useChatbot();
