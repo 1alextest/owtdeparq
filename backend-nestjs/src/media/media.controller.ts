@@ -13,6 +13,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MediaService, MediaUploadOptions } from './media.service';
+import { Express } from 'express';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { User } from '../auth/decorators/user.decorator';
 import { AuthenticatedUser } from '../auth/interfaces/auth.interface';

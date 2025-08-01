@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { MediaFile } from '../entities/media-file.entity';
 import { SlideType } from '../entities/slide.entity';
+import { Express } from 'express';
 
 export interface MediaUploadOptions {
   projectId?: string;

@@ -1,0 +1,15 @@
+{
+  "name": "owtdeparq-backend",
+  "version": "1.0.0",
+  "description": "OwtDeparq Backend Service",
+  "private": true,
+  "scripts": {
+    "build": "cd backend-nestjs && npm ci && npm run build",
+    "start": "cd backend-nestjs && npm run start:prod",
+    "start:prod": "cd backend-nestjs && npm run start:prod"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
