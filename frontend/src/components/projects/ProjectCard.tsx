@@ -3,9 +3,9 @@ import { Project } from '../../types';
 import { useNavigation } from '../../App';
 import {
   getProjectStatusInfo,
-  formatRelativeTime,
+  // formatRelativeTime,
   getActionIcon,
-  type ProjectAction
+  // type ProjectAction
 } from '../../utils/projectStatus';
 
 interface ProjectCardProps {

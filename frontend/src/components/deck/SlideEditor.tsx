@@ -241,7 +241,7 @@ export const SlideEditor: React.FC<SlideEditorProps> = ({
 
       return () => clearTimeout(timer);
     }
-  }, [title, content, speakerNotes, hasUnsavedChanges, slide.id]);
+  }, [title, content, speakerNotes, hasUnsavedChanges, slide.id, handleSave]);
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex flex-col">

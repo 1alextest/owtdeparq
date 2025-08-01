@@ -81,7 +81,7 @@ export const DeckEditor: React.FC<DeckEditorProps> = ({ deckId, projectId }) => 
     } finally {
       setLoading(false);
     }
-  }, [deckId, updateContext]);
+  }, [deckId, updateContext, selectedSlideId]);
 
   // Load deck and slides on component mount
   useEffect(() => {
