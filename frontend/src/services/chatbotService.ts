@@ -250,6 +250,7 @@ export class ChatbotService {
       }
     }
 
+    // eslint-disable-next-line no-throw-literal
     throw lastError!;
   }
 
