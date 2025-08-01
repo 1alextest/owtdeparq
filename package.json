@@ -1,15 +1,14 @@
 {
-  "name": "owtdeparq-backend",
+  "name": "owtdeparq-monorepo",
   "version": "1.0.0",
-  "description": "OwtDeparq Backend Service",
+  "description": "OwtDeparq Monorepo",
   "private": true,
-  "scripts": {
-    "build": "cd backend-nestjs && npm ci && npm run build",
-    "start": "cd backend-nestjs && node dist/main",
-    "start:prod": "cd backend-nestjs && node dist/main"
-  },
+  "workspaces": [
+    "backend-nestjs",
+    "frontend"
+  ],
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   }
 }

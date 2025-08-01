@@ -1,0 +1,12 @@
+frontend/
+src/
+.git/
+.github/
+.vscode/
+.cursor/
+*.md
+!backend-nestjs/
+backend-nestjs/node_modules/
+backend-nestjs/dist/
+backend-nestjs/test/
+backend-nestjs/*.md
