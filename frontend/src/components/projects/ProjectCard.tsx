@@ -79,7 +79,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-gray-300 h-full flex flex-col min-h-[280px]">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-gray-300 h-full flex flex-col min-h-[320px]">
       <div className="p-6 flex-1 flex flex-col">
         {/* Header with title and actions */}
         <div className="flex items-start justify-between mb-3">
@@ -141,8 +141,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           </div>
         </div>
 
-        {/* Description with fixed height */}
-        <div className="mb-4 h-16 flex items-start">
+        {/* Description with consistent height */}
+        <div className="mb-4 flex-1 min-h-[4rem] flex items-start">
           {project.description ? (
             <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed">
               {project.description}
@@ -175,7 +175,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a2 2 0 012 2v1a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2z" />
             </svg>
             <span className="truncate">
-              Created {project.created_at ? formatDate(project.created_at) : 'Unknown'}
+              Created {statusInfo.createdDate ? statusInfo.createdDate.toLocaleDateString() : 'Unknown'}
             </span>
           </div>
         </div>

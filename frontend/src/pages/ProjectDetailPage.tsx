@@ -64,7 +64,29 @@ export const ProjectDetailPage: React.FC = () => {
     navigate(`/projects/${projectId}/generate`);
   };
 
+  const handleDeleteDeck = async (deck: Deck) => {
+    if (!window.confirm(`Are you sure you want to delete "${deck.title}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      // TODO: Implement deck deletion API call
+      // await apiClient.deleteDeck(deck.id);
+      console.log('Delete deck:', deck.id);
+      
+      // For now, just remove from local state
+      setDecks(prevDecks => prevDecks.filter(d => d.id !== deck.id));
+      
+      // TODO: Show success message
+      alert('Deck deleted successfully');
+    } catch (err) {
+      console.error('Error deleting deck:', err);
+      alert('Failed to delete deck. Please try again.');
+    }
+  };
+
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'Unknown';
     return new Date(dateString).toLocaleDateString();
   };
 
@@ -294,9 +316,15 @@ export const ProjectDetailPage: React.FC = () => {
                             // TODO: Implement deck duplication
                             console.log("Duplicate deck:", deck);
                           }}
-                          className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                         >
                           Duplicate
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDeck(deck)}
+                          className="px-3 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 hover:bg-red-50 transition-colors"
+                        >
+                          Delete
                         </button>
                       </div>
                     </div>
