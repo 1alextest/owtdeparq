@@ -74,7 +74,7 @@ jspm_packages/
 CLAUDE.md
 
 # Development artifacts and legacy directories
-src/
+# src/ - commented out to allow backend source code
 test-ai-features.ps1
 test-ai-features.sh
 test-*.js
