@@ -81,6 +81,7 @@ export class ProjectsService {
         
         // Debug logging
         console.log(`Project ${project.name}: presentations=${presentationCount}, decks=${totalDeckCount}`);
+        console.log(`Project ${project.name} dates: createdAt=${project.createdAt}, updatedAt=${project.updatedAt}`);
         
         // Set presentation_count to actual presentation count
         (project as any).presentation_count = presentationCount;

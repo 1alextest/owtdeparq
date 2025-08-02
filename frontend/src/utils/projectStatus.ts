@@ -87,16 +87,22 @@ export function getProjectActivity(project: Project): ProjectActivity {
  * include deck and slide timestamps for more accurate activity tracking.
  */
 export function getLastActivityDate(project: Project): Date | null {
-  const dates = [
-    project.created_at,
-    project.updated_at,
-  ].filter(Boolean).map(date => new Date(date!));
+  // Handle both snake_case and camelCase field names
+  const createdAt = project.created_at || (project as any).createdAt;
+  const updatedAt = project.updated_at || (project as any).updatedAt;
+  
+  const dates = [createdAt, updatedAt].filter(Boolean).map(date => new Date(date!));
+
+  // Debug logging
+  console.log(`Project ${project.name}: created_at=${createdAt}, updated_at=${updatedAt}, dates=${dates.length}`);
 
   if (dates.length === 0) {
     return null;
   }
 
-  return new Date(Math.max(...dates.map(d => d.getTime())));
+  const lastDate = new Date(Math.max(...dates.map(d => d.getTime())));
+  console.log(`Last activity date for ${project.name}:`, lastDate);
+  return lastDate;
 }
 
 /**
@@ -106,7 +112,10 @@ export function getProjectStatusInfo(project: Project): ProjectStatusInfo {
   const status = getProjectStatus(project);
   const activity = getProjectActivity(project);
   const presentationCount = project.presentation_count || project.deck_count || 0;
-  const createdDate = project.created_at ? new Date(project.created_at) : null;
+  // Handle both snake_case and camelCase field names
+  const createdAtField = project.created_at || (project as any).createdAt;
+  const createdDate = createdAtField ? new Date(createdAtField) : null;
+  console.log(`Project ${project.name} createdDate:`, createdDate, 'from:', createdAtField);
   const lastActivityDate = getLastActivityDate(project);
 
   // Presentation count text
