@@ -80,7 +80,7 @@ import { LearningPattern } from './entities/learning-pattern.entity';
           extra: {
             max: 20, // Maximum number of connections
             idleTimeoutMillis: 30000, // Close idle connections after 30s
-            connectionTimeoutMillis: 10000, // Increased timeout for Supabase
+            connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 30000, // Increased timeout for Railway
             ssl: { rejectUnauthorized: false }
           },
           // Retry configuration for better reliability

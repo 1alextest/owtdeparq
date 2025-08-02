@@ -31,10 +31,14 @@ export class OpenaiProvider {
 
   constructor(private configService: ConfigService) {
     this.defaultApiKey = this.configService.get<string>('OPENAI_API_KEY');
-    if (this.defaultApiKey) {
+    const isEnabled = this.configService.get<string>('OPENAI_ENABLED', 'true') === 'true';
+    
+    if (this.defaultApiKey && !this.defaultApiKey.includes('dummy') && isEnabled) {
       this.openai = new OpenAI({
         apiKey: this.defaultApiKey,
       });
+    } else {
+      this.logger.warn('OpenAI provider disabled - no valid API key or explicitly disabled');
     }
   }
 
@@ -44,6 +48,10 @@ export class OpenaiProvider {
     options: GenerationOptions = {}
   ): Promise<SlideGenerationResult> {
     const client = this.getClient(options.userApiKey);
+    
+    if (!client) {
+      throw new Error('OpenAI provider is not available - no valid API key configured');
+    }
     const prompt = PromptTemplates.buildPrompt({ ...context, slideType });
     const model = options.model || this.DEFAULT_MODEL;
 
