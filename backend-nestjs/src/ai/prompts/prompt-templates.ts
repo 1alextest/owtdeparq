@@ -239,12 +239,19 @@ Returns: [Growth trajectory and investor returns]`
 
 User Request: Create a complete pitch deck based on this description: "${userPrompt}"
 
-Please generate content for a pitch deck with the following 5 key slides:
+Please generate content for a complete 12-slide pitch deck with the following slides:
 1. Cover slide with company name and tagline
 2. Problem statement
 3. Solution overview
-4. Market opportunity
-5. Funding ask
+4. Market opportunity and size
+5. Product/service details
+6. Business model
+7. Go-to-market strategy
+8. Competition analysis
+9. Team introduction
+10. Financial projections
+11. Traction and milestones
+12. Funding ask and use of funds
 
 For each slide, provide:
 - A clear, compelling title

@@ -141,7 +141,7 @@ export class OllamaProvider {
         options: {
           temperature: options.temperature || 0.7,
           top_p: 0.9,
-          num_predict: options.maxTokens || 4000,
+          num_predict: options.maxTokens || 8000,
         },
       }, {
         timeout: 60000, // 1 minute timeout for testing

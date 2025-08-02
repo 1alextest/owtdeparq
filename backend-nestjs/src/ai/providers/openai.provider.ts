@@ -135,7 +135,7 @@ export class OpenaiProvider {
             content: fullPrompt,
           },
         ],
-        max_tokens: options.maxTokens || 4000,
+        max_tokens: options.maxTokens || 8000,
         temperature: options.temperature || 0.7,
       });
 
