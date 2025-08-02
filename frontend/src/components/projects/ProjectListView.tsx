@@ -1,6 +1,6 @@
 import React from 'react';
 import { Project } from '../../types';
-import { useNavigation } from '../../App';
+import { useNavigation } from '../../hooks/useNavigation';
 import {
   getProjectStatusInfo,
   // formatRelativeTime,

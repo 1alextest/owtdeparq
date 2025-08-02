@@ -5,10 +5,10 @@ interface RegisterFormProps {
   onSubmit: (email: string, password: string, confirmPassword: string) => Promise<void>;
   loading?: boolean;
   error?: string;
-  onSwitchToLogin?: () => void;
+
 }
 
-export const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, loading = false, error, onSwitchToLogin }) => {
+export const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, loading = false, error }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -133,24 +133,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, loading = 
         </button>
       </form>
       
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
-          Already have an account?{' '}
-          {onSwitchToLogin ? (
-            <button
-              type="button"
-              onClick={onSwitchToLogin}
-              className="text-blue-600 hover:text-blue-500 font-medium underline bg-transparent border-none cursor-pointer"
-            >
-              Sign in
-            </button>
-          ) : (
-            <a href="/login" className="text-blue-600 hover:text-blue-500 font-medium">
-              Sign in
-            </a>
-          )}
-        </p>
-      </div>
+
     </div>
   );
 };

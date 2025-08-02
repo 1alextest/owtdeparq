@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigation } from "../App";
+import { useParams } from "react-router-dom";
+import { useNavigation } from "../hooks/useNavigation";
 import { apiClient } from "../services/apiClient";
 import { Project } from "../types";
 
@@ -13,15 +14,8 @@ interface Deck {
   slide_count?: number;
 }
 
-// Remove duplicate Project interface since we're importing it from types
-
-interface ProjectDetailPageProps {
-  projectId: string;
-}
-
-export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
-  projectId,
-}) => {
+export const ProjectDetailPage: React.FC = () => {
+  const { projectId } = useParams<{ projectId: string }>();
   const { navigate } = useNavigation();
   // const { navigate, goBack } = useNavigation(); // TODO: Implement back navigation
   const [project, setProject] = useState<Project | null>(null);
@@ -30,6 +24,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const loadProjectData = useCallback(async () => {
+    if (!projectId) {
+      setError('Project ID is required');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);

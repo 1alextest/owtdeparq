@@ -1,21 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { RegisterForm } from '../components/auth/RegisterForm';
 import { useAuth } from '../contexts/AuthContext';
 
-interface RegisterPageProps {
-  onSwitchToLogin?: () => void;
-}
-
-export const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin }) => {
-  const { register, loading, error, user, clearError } = useAuth();
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (user) {
-      // TODO: Redirect to dashboard
-      console.log('User already authenticated, should redirect to dashboard');
-    }
-  }, [user]);
+export const RegisterPage: React.FC = () => {
+  const { register, loading, error, clearError } = useAuth();
 
   const handleRegister = async (email: string, password: string, confirmPassword: string) => {
     clearError();
@@ -40,8 +29,19 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitchToLogin }) =
           onSubmit={handleRegister}
           loading={loading}
           error={error || undefined}
-          onSwitchToLogin={onSwitchToLogin}
         />
+        
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link 
+              to="/login" 
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              Sign in here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

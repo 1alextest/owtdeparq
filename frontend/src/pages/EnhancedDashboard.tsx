@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigation } from '../App';
+import { useNavigation } from '../hooks/useNavigation';
 import { Project } from '../types';
 import { DraggableProjectGrid } from '../components/projects/DraggableProjectGrid';
 import { ProjectListView } from '../components/projects/ProjectListView';

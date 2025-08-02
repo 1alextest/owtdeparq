@@ -1,10 +1,10 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { NavigationBar } from '../navigation/NavigationBar';
 import { Breadcrumb, generateBreadcrumbs } from '../navigation/Breadcrumb';
 
 interface AppLayoutProps {
   children: React.ReactNode;
-  currentRoute: string;
   showBreadcrumbs?: boolean;
   projectName?: string;
   deckTitle?: string;
@@ -12,17 +12,17 @@ interface AppLayoutProps {
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
   children,
-  currentRoute,
   showBreadcrumbs = true,
   projectName,
   deckTitle
 }) => {
-  const breadcrumbs = generateBreadcrumbs(currentRoute, projectName, deckTitle);
+  const location = useLocation();
+  const breadcrumbs = generateBreadcrumbs(location.pathname, projectName, deckTitle);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}
-      <NavigationBar currentRoute={currentRoute} />
+      <NavigationBar currentRoute={location.pathname} />
       
       {/* Breadcrumbs */}
       {showBreadcrumbs && breadcrumbs.length > 1 && (

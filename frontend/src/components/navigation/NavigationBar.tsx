@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigation } from '../../App';
+import { useNavigation } from '../../hooks/useNavigation';
 
 interface NavigationBarProps {
   currentRoute: string;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigation } from '../../App';
+import { useNavigation } from '../../hooks/useNavigation';
 import { apiClient } from '../../services/apiClient';
 
 interface WelcomeFlowProps {

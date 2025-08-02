@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigation } from '../../App';
+import { useNavigation } from '../../hooks/useNavigation';
 
 interface BreadcrumbItem {
   label: string;

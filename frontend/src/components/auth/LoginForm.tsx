@@ -3,10 +3,9 @@ import { useAuth } from '../../contexts/AuthContext';
 
 interface LoginFormProps {
   onSuccess?: () => void;
-  onSwitchToRegister?: () => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegister }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -145,24 +144,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegis
         </div>
       </div>
       
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          {onSwitchToRegister ? (
-            <button
-              type="button"
-              onClick={onSwitchToRegister}
-              className="text-blue-600 hover:text-blue-500 font-medium underline bg-transparent border-none cursor-pointer"
-            >
-              Sign up
-            </button>
-          ) : (
-            <a href="/register" className="text-blue-600 hover:text-blue-500 font-medium">
-              Sign up
-            </a>
-          )}
-        </p>
-      </div>
+
     </div>
   );
 };

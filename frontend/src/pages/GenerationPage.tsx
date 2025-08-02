@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { ModeSelector, GenerationMode } from '../components/generation/ModeSelector';
 import { FreePromptForm } from '../components/generation/FreePromptForm';
 import { CustomFormWizard } from '../components/generation/CustomFormWizard';
 import { EnhancedGenerationProgress } from '../components/generation/EnhancedGenerationProgress';
-import { useNavigation } from '../App';
+import { useNavigation } from '../hooks/useNavigation';
 import { apiClient } from '../services/apiClient';
 
-interface GenerationPageProps {
-  projectId: string;
-}
-
-export const GenerationPage: React.FC<GenerationPageProps> = ({ projectId }) => {
+export const GenerationPage: React.FC = () => {
+  const { projectId } = useParams<{ projectId: string }>();
   const { navigate, goBack } = useNavigation();
   
   const [selectedMode, setSelectedMode] = useState<GenerationMode>('free');

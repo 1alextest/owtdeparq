@@ -1,22 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { LoginForm } from '../components/auth/LoginForm';
-import { useAuth } from '../contexts/AuthContext';
 
-interface LoginPageProps {
-  onSwitchToRegister?: () => void;
-}
-
-export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister }) => {
-  const { user } = useAuth();
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (user) {
-      // TODO: Redirect to dashboard
-      console.log('User already authenticated, should redirect to dashboard');
-    }
-  }, [user]);
-
+export const LoginPage: React.FC = () => {
   const handleLoginSuccess = () => {
     console.log('Login successful, should redirect to dashboard');
     // TODO: Redirect to dashboard
@@ -38,8 +24,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister }) => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <LoginForm
           onSuccess={handleLoginSuccess}
-          onSwitchToRegister={onSwitchToRegister}
         />
+        
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <Link 
+              to="/register" 
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              Sign up here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
