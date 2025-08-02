@@ -22,7 +22,9 @@ async function bootstrap() {
         'http://localhost:3000',
         'http://localhost:3001',
         'http://localhost:3002',
-        process.env.FRONTEND_URL
+        'https://owtdeparq-frontend-production.up.railway.app',
+        process.env.FRONTEND_URL,
+        process.env.RAILWAY_SERVICE_OWTDEPARQ_FRONTEND_URL ? `https://${process.env.RAILWAY_SERVICE_OWTDEPARQ_FRONTEND_URL}` : null
       ].filter(Boolean),
       credentials: true,
     });
