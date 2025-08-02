@@ -30,10 +30,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   // Get enhanced project status information
   const statusInfo = getProjectStatusInfo(project);
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Unknown';
-    return new Date(dateString).toLocaleDateString();
-  };
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
