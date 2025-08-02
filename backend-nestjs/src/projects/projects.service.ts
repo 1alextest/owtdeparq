@@ -56,17 +56,36 @@ export class ProjectsService {
         .groupBy('presentation.projectId')
         .getRawMany();
 
-      // Map presentation counts to projects
+      // Get total deck counts (including both presentation decks and standalone decks)
+      const totalDeckCounts = await this.deckRepository
+        .createQueryBuilder('deck')
+        .select('deck.projectId', 'projectId')
+        .addSelect('COUNT(deck.id)', 'count')
+        .where('deck.projectId IN (:...projectIds)', { projectIds })
+        .groupBy('deck.projectId')
+        .getRawMany();
+
+      // Map counts to projects
       const presentationCountMap = new Map(
         presentationCounts.map(pc => [pc.projectId, parseInt(pc.count)])
       );
 
-      // Add presentation count to each project without loading full relations
+      const deckCountMap = new Map(
+        totalDeckCounts.map(dc => [dc.projectId, parseInt(dc.count)])
+      );
+
+      // Add counts to each project
       projects.forEach(project => {
         const presentationCount = presentationCountMap.get(project.id) || 0;
+        const totalDeckCount = deckCountMap.get(project.id) || 0;
+        
+        // Debug logging
+        console.log(`Project ${project.name}: presentations=${presentationCount}, decks=${totalDeckCount}`);
+        
+        // Set presentation_count to actual presentation count
         (project as any).presentation_count = presentationCount;
-        // Keep deck_count for backward compatibility, but it should be deprecated
-        (project as any).deck_count = presentationCount;
+        // Set deck_count to total deck count (for backward compatibility)
+        (project as any).deck_count = totalDeckCount;
       });
     }
 
@@ -94,11 +113,31 @@ export class ProjectsService {
     // First verify the project belongs to the user
     await this.findOne(projectId, userId);
 
-    return await this.deckRepository.find({
+    // Get all presentations for this project
+    const presentations = await this.presentationRepository.find({
+      where: { projectId },
+      relations: ['decks', 'decks.slides'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // Flatten all decks from all presentations
+    const presentationDecks = presentations.flatMap(presentation => presentation.decks || []);
+    
+    // Also get decks directly associated with the project (for backward compatibility)
+    const directDecks = await this.deckRepository.find({
       where: { projectId },
       relations: ['slides'],
       order: { createdAt: 'DESC' },
     });
+
+    // Combine both sets of decks and remove duplicates
+    const allDecks = [...presentationDecks, ...directDecks];
+    const uniqueDecks = allDecks.filter((deck, index, self) => 
+      index === self.findIndex(d => d.id === deck.id)
+    );
+    
+    // Sort by creation date (most recent first)
+    return uniqueDecks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   async update(id: string, updateProjectDto: UpdateProjectDto, userId: string): Promise<Project> {
